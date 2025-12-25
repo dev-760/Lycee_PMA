@@ -24,6 +24,7 @@ export interface Announcement {
   title: string;
   date: string;
   urgent?: boolean;
+  description?: string;
   // Translations
   title_en?: string;
   title_fr?: string;

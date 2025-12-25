@@ -319,7 +319,7 @@ const AbsentTeachersAdmin = () => {
                         placeholder={t.search}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className={`w-full py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent ${isRTL ? 'pr-12 pl-4' : 'pl-12 pr-4'}`}
+                        className={`w-full py-3 border border-gray-200 rounded-xl bg-white text-charcoal placeholder:text-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all ${isRTL ? 'pr-12 pl-4' : 'pl-12 pr-4'}`}
                     />
                 </div>
 

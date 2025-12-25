@@ -196,28 +196,32 @@ const AdminUsers = () => {
             </Helmet>
 
             <div className="space-y-6">
-                {/* Page Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-charcoal flex items-center gap-3">
-                            <Users className="w-8 h-8 text-purple-600" />
-                            {t('users', 'manageUsers')}
-                        </h1>
-                        <p className="text-slate mt-1">{t('users', 'addEditDeleteUsers')}</p>
+                {/* Enhanced Page Header */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl">
+                                <Users className="w-8 h-8 text-purple-600" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-charcoal">{t('users', 'manageUsers')}</h1>
+                                <p className="text-slate mt-1.5">{t('users', 'addEditDeleteUsers')}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={openNewModal}
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+                        >
+                            <Plus className="w-5 h-5" />
+                            {t('users', 'addUser')}
+                        </button>
                     </div>
-                    <button
-                        onClick={openNewModal}
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-                    >
-                        <Plus className="w-5 h-5" />
-                        {t('users', 'addUser')}
-                    </button>
                 </div>
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {stats.map((stat) => (
-                        <div key={stat.label} className="bg-white rounded-xl p-4 shadow-card border border-gray-100">
+                        <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-lg border-2 border-gray-100 hover:border-purple-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                             <div className="flex items-center gap-3">
                                 <div className={`w-3 h-3 rounded-full ${stat.color}`}></div>
                                 <div>
@@ -232,33 +236,33 @@ const AdminUsers = () => {
                 {/* Search */}
                 <div className="bg-white rounded-xl p-4 shadow-card border border-gray-100">
                     <div className="relative">
-                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate" />
+                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder={t('users', 'searchUsers')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 outline-none transition-all"
+                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 bg-white text-charcoal placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 outline-none transition-all"
                         />
                     </div>
                 </div>
 
-                {/* Users Table */}
-                <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+                {/* Enhanced Users Table */}
+                <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 border-b-2 border-gray-200">
                                 <tr>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('users', 'user')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('admin', 'role')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('users', 'status')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('admin', 'lastLogin')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('users', 'user')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('admin', 'role')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('users', 'status')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('admin', 'lastLogin')}</th>
                                     <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {filteredUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={user.id} className="hover:bg-gradient-to-r hover:from-purple-500/5 hover:to-pink-500/5 transition-all duration-200 group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
@@ -338,36 +342,6 @@ const AdminUsers = () => {
                     )}
                 </div>
 
-                {/* Role Permissions Info */}
-                <div className="bg-white rounded-2xl p-6 shadow-card border border-gray-100">
-                    <h2 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-purple-600" />
-                        {t('users', 'rolePermissions')}
-                    </h2>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                        <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                                <h3 className="font-semibold text-charcoal">{t('users', 'superAdmin')}</h3>
-                            </div>
-                            <p className="text-xs text-slate">{t('users', 'allPermissions')}</p>
-                        </div>
-                        <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                <h3 className="font-semibold text-charcoal">{t('users', 'editor')}</h3>
-                            </div>
-                            <p className="text-xs text-slate">{t('users', 'editorPermissions')}</p>
-                        </div>
-                        <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                <h3 className="font-semibold text-charcoal">{t('users', 'administrator')}</h3>
-                            </div>
-                            <p className="text-xs text-slate">{t('users', 'administratorPermissions')}</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Add/Edit Modal */}

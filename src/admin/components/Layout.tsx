@@ -19,6 +19,7 @@ import {
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import Breadcrumbs from './Breadcrumbs';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -81,15 +82,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             icon: Settings,
             show: hasPermission('canManageSettings')
         },
-        {
-            name: currentUser?.role === 'super_admin' ? (t('admin', 'security') || 'Security') : '',
-            href: '/admin/security',
-            icon: Shield,
-            show: currentUser?.role === 'super_admin'
-        },
     ].filter(item => item.show);
 
-    const isActive = (href: string) => location.pathname === href;
+    const isActive = (href: string) => {
+        if (href === '/admin/dashboard') {
+            return location.pathname === href;
+        }
+        return location.pathname.startsWith(href);
+    };
 
     const handleLogout = () => {
         logout();
@@ -119,73 +119,92 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
-            {/* Sidebar */}
-            <aside className={`fixed inset-y-0 ${isRTL ? 'right-0' : 'left-0'} z-50 w-72 bg-gradient-to-b from-charcoal to-charcoal-light transform transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen
+            {/* Enhanced Sidebar */}
+            <aside className={`fixed inset-y-0 ${isRTL ? 'right-0' : 'left-0'} z-50 w-72 bg-gradient-to-br from-charcoal via-charcoal-light to-charcoal transform transition-transform duration-300 lg:translate-x-0 shadow-2xl ${isSidebarOpen
                 ? 'translate-x-0'
                 : isRTL
                     ? 'translate-x-full lg:translate-x-0'
                     : '-translate-x-full lg:translate-x-0'
                 }`}>
-                <div className="flex flex-col h-full">
-                    {/* Logo */}
-                    <div className="p-6 border-b border-white/10">
-                        <Link to="/admin/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                            <div className="bg-white p-1.5 rounded-xl shadow-lg">
-                                <img
-                                    src="/logo.png"
-                                    alt="Logo"
-                                    className="w-10 h-10 object-contain"
-                                />
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-bold text-white">{t('auth', 'controlPanel')}</h1>
-                                <p className="text-xs text-white/50">{t('common', 'siteName')}</p>
-                            </div>
-                        </Link>
-                    </div>
-
-                    {/* Navigation */}
-                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                to={item.href}
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive(item.href)
-                                    ? 'bg-gradient-to-r from-teal to-teal-light text-white shadow-lg shadow-teal/30'
-                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                                    }`}
-                            >
-                                <item.icon className="w-5 h-5" />
-                                <span className="font-medium">{item.name}</span>
-                                {isActive(item.href) && <ChevronIcon className={`w-4 h-4 ${isRTL ? 'mr-auto' : 'ml-auto'}`} />}
+                <div className="flex flex-col h-full relative overflow-hidden">
+                    {/* Decorative background elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+                    
+                    <div className="relative z-10 flex flex-col h-full">
+                        {/* Enhanced Logo */}
+                        <div className="p-6 border-b border-white/10 bg-white/5 backdrop-blur-sm">
+                            <Link to="/admin/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-all duration-200 group">
+                                <div className="bg-white p-2 rounded-2xl shadow-xl group-hover:shadow-2xl group-hover:scale-105 transition-all duration-300">
+                                    <img
+                                        src="/logo.png"
+                                        alt="Logo"
+                                        className="w-10 h-10 object-contain"
+                                    />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold text-white group-hover:text-teal-light transition-colors">{t('auth', 'controlPanel')}</h1>
+                                    <p className="text-xs text-white/60">{t('common', 'siteName')}</p>
+                                </div>
                             </Link>
-                        ))}
-                    </nav>
+                        </div>
 
-                    {/* User section */}
-                    <div className="p-4 border-t border-white/10">
-                        <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-white/5 rounded-xl backdrop-blur-sm">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal/30 to-teal-dark/30 flex items-center justify-center border border-teal/30">
-                                <User className="w-5 h-5 text-teal" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-white truncate">{currentUser?.name}</p>
-                                <div className="flex items-center gap-1.5 mt-1">
-                                    <Shield className="w-3 h-3 text-white/50" />
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(currentUser?.role || '')}`}>
-                                        {currentUser && getRoleDisplayName(currentUser.role)}
-                                    </span>
+                        {/* Enhanced Navigation */}
+                        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+                            {navItems.map((item, index) => {
+                                const active = isActive(item.href);
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        to={item.href}
+                                        onClick={() => setIsSidebarOpen(false)}
+                                        className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 relative overflow-hidden ${active
+                                            ? 'bg-gradient-to-r from-teal to-teal-light text-white shadow-xl shadow-teal/40 scale-[1.02]'
+                                            : 'text-white/70 hover:bg-white/10 hover:text-white hover:scale-[1.01] hover:shadow-lg'
+                                            }`}
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        {/* Active indicator */}
+                                        {active && (
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg" />
+                                        )}
+                                        <div className={`absolute inset-0 bg-gradient-to-r from-teal/20 to-teal-light/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${active ? 'opacity-100' : ''}`} />
+                                        <div className={`relative z-10 p-2 rounded-xl ${active ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all duration-300`}>
+                                            <item.icon className={`w-5 h-5 ${active ? 'text-white' : 'text-white/80 group-hover:text-teal-light'} transition-colors duration-300`} />
+                                        </div>
+                                        <span className={`font-semibold relative z-10 flex-1 ${active ? 'text-white' : 'text-white/80 group-hover:text-white'} transition-colors duration-300`}>{item.name}</span>
+                                        {active && (
+                                            <ChevronIcon className={`w-4 h-4 relative z-10 ${isRTL ? 'mr-auto' : 'ml-auto'} animate-slide-in`} />
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+
+                        {/* Enhanced User section */}
+                        <div className="p-4 border-t border-white/10 bg-white/5 backdrop-blur-sm">
+                            <div className="flex items-center gap-3 mb-4 px-4 py-4 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:border-teal/30 transition-all duration-300">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal/40 to-teal-dark/40 flex items-center justify-center border-2 border-teal/40 shadow-lg">
+                                    <User className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-white truncate">{currentUser?.name}</p>
+                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                        <Shield className="w-3 h-3 text-white/60" />
+                                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold shadow-md ${getRoleBadgeColor(currentUser?.role || '')}`}>
+                                            {currentUser && getRoleDisplayName(currentUser.role)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-2xl text-red-300 hover:text-white hover:bg-gradient-to-r hover:from-red-500/20 hover:to-pink-500/20 border border-red-500/20 hover:border-red-500/40 transition-all duration-300 font-semibold group"
+                            >
+                                <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                <span>{t('auth', 'logout')}</span>
+                            </button>
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
-                        >
-                            <LogOut className="w-5 h-5" />
-                            <span className="font-medium">{t('auth', 'logout')}</span>
-                        </button>
                     </div>
                 </div>
             </aside>
@@ -200,45 +219,98 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
             {/* Main Content */}
             <div className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'}`}>
-                {/* Top Header */}
-                <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <button
-                            onClick={() => setIsSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                            <Menu className="w-6 h-6 text-charcoal" />
-                        </button>
+                        {/* Enhanced Top Header */}
+                        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
+                            <div className="flex items-center justify-between px-6 py-4">
+                                <button
+                                    onClick={() => setIsSidebarOpen(true)}
+                                    className="lg:hidden p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 active:scale-95"
+                                >
+                                    <Menu className="w-6 h-6 text-charcoal" />
+                                </button>
 
-                        <div className="hidden sm:flex items-center gap-2 text-sm text-slate">
-                            <Shield className="w-4 h-4 text-teal" />
-                            <span>{t('admin', 'welcome')}, {currentUser?.name}</span>
-                            <span className="text-gray-300">|</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs ${getRoleBadgeColor(currentUser?.role || '')}`}>
-                                {currentUser && getRoleDisplayName(currentUser.role)}
-                            </span>
-                        </div>
+                                <div className="hidden sm:flex items-center gap-3 text-sm">
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal/10 to-teal-light/10 rounded-xl border border-teal/20">
+                                        <Shield className="w-4 h-4 text-teal" />
+                                        <span className="text-charcoal font-semibold">{t('admin', 'welcome')}, <span className="text-teal">{currentUser?.name}</span></span>
+                                    </div>
+                                    <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm ${getRoleBadgeColor(currentUser?.role || '')}`}>
+                                        {currentUser && getRoleDisplayName(currentUser.role)}
+                                    </span>
+                                </div>
 
-                        <div className={`flex items-center gap-4 ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
-                            <LanguageSwitcher variant="admin" />
-                            <Link
-                                to="/"
-                                className="text-sm text-teal hover:text-charcoal transition-colors font-medium flex items-center gap-1"
-                            >
-                                {t('nav', 'visitSite')}
-                                <span>{isRTL ? '←' : '→'}</span>
-                            </Link>
-                        </div>
-                    </div>
-                </header>
+                                <div className={`flex items-center gap-3 ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
+                                    <LanguageSwitcher variant="admin" />
+                                    <Link
+                                        to="/"
+                                        className="text-sm text-teal hover:text-teal-dark transition-colors font-semibold flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-teal/10 border border-teal/20 hover:border-teal/40 transition-all duration-200"
+                                    >
+                                        {t('nav', 'visitSite')}
+                                        <span className="text-lg">{isRTL ? '←' : '→'}</span>
+                                    </Link>
+                                </div>
+                            </div>
+                        </header>
 
-                {/* Page Content */}
-                <main className="p-6">
-                    {children}
-                </main>
+                        {/* Enhanced Page Content */}
+                        <main className="p-6 lg:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50/50 min-h-[calc(100vh-80px)]">
+                            <div className="max-w-7xl mx-auto">
+                                <Breadcrumbs />
+                                <div className="animate-fade-in">
+                                    {children}
+                                </div>
+                            </div>
+                        </main>
             </div>
         </div>
     );
 };
 
 export default AdminLayout;
+
+// Add custom scrollbar styles
+if (typeof document !== 'undefined') {
+    const style = document.createElement('style');
+    style.textContent = `
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-slide-in {
+            animation: slide-in 0.3s ease-out;
+        }
+        .animate-fade-in {
+            animation: fade-in 0.4s ease-out;
+        }
+    `;
+    document.head.appendChild(style);
+}

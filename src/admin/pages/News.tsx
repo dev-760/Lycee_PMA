@@ -142,29 +142,33 @@ const AdminNews = () => {
             </Helmet>
 
             <div className="space-y-6">
-                {/* Page Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-charcoal flex items-center gap-3">
-                            <Newspaper className="w-8 h-8 text-blue-600" />
-                            {t('news', 'manageNews')}
-                        </h1>
-                        <p className="text-slate mt-1">{t('news', 'addEditDeleteNews')}</p>
-                    </div>
-                    {hasPermission('canCreate') ? (
-                        <button
-                            onClick={openNewModal}
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all"
-                        >
-                            <Plus className="w-5 h-5" />
-                            {t('news', 'addNews')}
-                        </button>
-                    ) : (
-                        <div className="inline-flex items-center gap-2 bg-gray-100 text-slate px-6 py-3 rounded-xl font-medium">
-                            <Lock className="w-4 h-4" />
-                            {t('articles', 'viewOnlyMode')}
+                {/* Enhanced Page Header */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-400/20 rounded-2xl">
+                                <Newspaper className="w-8 h-8 text-blue-600" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-charcoal">{t('news', 'manageNews')}</h1>
+                                <p className="text-slate mt-1.5">{t('news', 'addEditDeleteNews')}</p>
+                            </div>
                         </div>
-                    )}
+                        {hasPermission('canCreate') ? (
+                            <button
+                                onClick={openNewModal}
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+                            >
+                                <Plus className="w-5 h-5" />
+                                {t('news', 'addNews')}
+                            </button>
+                        ) : (
+                            <div className="inline-flex items-center gap-2 bg-gray-100 text-slate px-6 py-3 rounded-xl font-medium">
+                                <Lock className="w-4 h-4" />
+                                {t('articles', 'viewOnlyMode')}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Permission Notice for Viewers */}
@@ -180,33 +184,33 @@ const AdminNews = () => {
                 {/* Search */}
                 <div className="bg-white rounded-xl p-4 shadow-card border border-gray-100">
                     <div className="relative">
-                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate" />
+                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder={t('news', 'searchNews')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-all"
+                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 bg-white text-charcoal placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-all"
                         />
                     </div>
                 </div>
 
-                {/* News Table */}
-                <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+                {/* Enhanced News Table */}
+                <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 border-b-2 border-gray-200">
                                 <tr>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'image')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('news', 'newsTitle')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'author')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'date')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'image')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('news', 'newsTitle')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'author')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'date')}</th>
                                     <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {filteredNews.map((item) => (
-                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={item.id} className="hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-blue-400/5 transition-all duration-200 group">
                                         <td className="px-6 py-4">
                                             <img
                                                 src={item.image}

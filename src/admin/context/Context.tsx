@@ -86,9 +86,9 @@ export const rolePermissions: Record<UserRole, RolePermissions> = {
 };
 
 export const roleDisplayNames: Record<UserRole, string> = {
-    super_admin: 'مدير عام',
+    super_admin: 'مشرف عام',
     editor: 'محرر',
-    administrator: 'مسؤول الإعلانات',
+    administrator: 'مسؤول إداري',
     user: 'مستخدم'
 };
 
@@ -166,21 +166,22 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         fetchUsers();
     }, [currentUser?.role]);
 
-    const login = async (username: string, password: string): Promise<LoginResult> => {
-        const email = username; // Assume email for now
-        const response = await authLogin(email, password);
+    const login = async (email: string, password: string): Promise<LoginResult> => {
+        // Normalize email to avoid invisible mismatches
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const response = await authLogin(normalizedEmail, password);
 
         if (!response.success) {
             return {
                 success: false,
-                error: response.error
+                error: response.error || 'Invalid email or password'
             };
         }
 
-        return {
-            success: true
-        };
+        return { success: true };
     };
+
 
     const logout = async () => {
         authLogout();

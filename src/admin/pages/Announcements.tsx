@@ -10,7 +10,8 @@ import {
     Save,
     Sparkles,
     Lock,
-    Shield
+    Shield,
+    Clock
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import { announcements as initialAnnouncements, Announcement } from '@/data/mockData';
@@ -27,6 +28,7 @@ const AdminAnnouncements = () => {
     const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
     const [formData, setFormData] = useState({
         title: '',
+        description: '',
         urgent: false
     });
     const { toast } = useToast();
@@ -60,7 +62,7 @@ const AdminAnnouncements = () => {
             return;
         }
         setEditingAnnouncement(null);
-        setFormData({ title: '', urgent: false });
+        setFormData({ title: '', description: '', urgent: false });
         setIsModalOpen(true);
     };
 
@@ -76,6 +78,7 @@ const AdminAnnouncements = () => {
         setEditingAnnouncement(announcement);
         setFormData({
             title: announcement.title,
+            description: (announcement as any).description || '',
             urgent: announcement.urgent || false
         });
         setIsModalOpen(true);
@@ -140,29 +143,33 @@ const AdminAnnouncements = () => {
             </Helmet>
 
             <div className="space-y-6">
-                {/* Page Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-charcoal flex items-center gap-3">
-                            <Bell className="w-8 h-8 text-gold" />
-                            {t('announcements', 'manageAnnouncements')}
-                        </h1>
-                        <p className="text-slate mt-1">{t('announcements', 'addEditDeleteAnnouncements')}</p>
-                    </div>
-                    {hasPermission('canCreate') ? (
-                        <button
-                            onClick={openNewModal}
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-gold to-gold-light text-charcoal px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-gold/30 transition-all"
-                        >
-                            <Plus className="w-5 h-5" />
-                            {t('announcements', 'addAnnouncement')}
-                        </button>
-                    ) : (
-                        <div className="inline-flex items-center gap-2 bg-gray-100 text-slate px-6 py-3 rounded-xl font-medium">
-                            <Lock className="w-4 h-4" />
-                            {t('articles', 'viewOnlyMode')}
+                {/* Enhanced Page Header */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-gold/20 to-gold-light/20 rounded-2xl">
+                                <Bell className="w-8 h-8 text-gold" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-charcoal">{t('announcements', 'manageAnnouncements')}</h1>
+                                <p className="text-slate mt-1.5">{t('announcements', 'addEditDeleteAnnouncements')}</p>
+                            </div>
                         </div>
-                    )}
+                        {hasPermission('canCreate') ? (
+                            <button
+                                onClick={openNewModal}
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-gold to-gold-light text-charcoal px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-gold/30 transition-all"
+                            >
+                                <Plus className="w-5 h-5" />
+                                {t('announcements', 'addAnnouncement')}
+                            </button>
+                        ) : (
+                            <div className="inline-flex items-center gap-2 bg-gray-100 text-slate px-6 py-3 rounded-xl font-medium">
+                                <Lock className="w-4 h-4" />
+                                {t('articles', 'viewOnlyMode')}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Permission Notice for Viewers */}
@@ -178,23 +185,23 @@ const AdminAnnouncements = () => {
                 {/* Search */}
                 <div className="bg-white rounded-xl p-4 shadow-card border border-gray-100">
                     <div className="relative">
-                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate" />
+                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
                             placeholder={t('announcements', 'searchAnnouncements')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none transition-all"
+                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 bg-white text-charcoal placeholder:text-gray-400 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none transition-all"
                         />
                     </div>
                 </div>
 
-                {/* Announcements List */}
+                {/* Enhanced Announcements List */}
                 <div className="space-y-4">
                     {filteredAnnouncements.map((announcement) => (
                         <div
                             key={announcement.id}
-                            className="bg-white rounded-2xl p-6 shadow-card border border-gray-100 flex items-center gap-5 hover:shadow-hover transition-all"
+                            className="bg-white rounded-3xl p-6 shadow-lg border-2 border-gray-100 flex items-center gap-5 hover:shadow-xl hover:border-gold/30 hover:-translate-y-1 transition-all duration-300 group"
                         >
                             <div className={`p-3.5 rounded-xl ${announcement.urgent
                                 ? 'bg-gradient-to-br from-red-500 to-red-600 text-white'
@@ -204,16 +211,22 @@ const AdminAnnouncements = () => {
                             </div>
 
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex items-center gap-2 mb-2">
                                     {announcement.urgent && (
-                                        <span className="flex items-center gap-1 bg-red-100 text-red-600 text-xs px-2.5 py-1 rounded-full font-bold">
+                                        <span className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-md animate-pulse">
                                             <Sparkles className="w-3 h-3" />
                                             {t('announcements', 'important')}
                                         </span>
                                     )}
-                                    <h3 className="font-bold text-charcoal">{announcement.title}</h3>
+                                    <h3 className="font-bold text-charcoal text-lg group-hover:text-gold transition-colors">{announcement.title}</h3>
                                 </div>
-                                <p className="text-sm text-slate">{announcement.date}</p>
+                                {(announcement as any).description && (
+                                    <p className="text-sm text-slate mb-2 line-clamp-2">{(announcement as any).description}</p>
+                                )}
+                                <p className="text-xs text-slate flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {announcement.date}
+                                </p>
                             </div>
 
                             <div className="flex items-center gap-2">
@@ -286,6 +299,19 @@ const AdminAnnouncements = () => {
                                     className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none"
                                     placeholder={t('announcements', 'announcementText')}
                                     required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-charcoal mb-2">
+                                    {language === 'ar' ? 'الوصف (اختياري)' : language === 'fr' ? 'Description (optionnel)' : 'Description (optional)'}
+                                </label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none resize-none"
+                                    placeholder={language === 'ar' ? 'أضف وصفاً للإعلان (اختياري)' : language === 'fr' ? 'Ajouter une description (optionnel)' : 'Add a description (optional)'}
+                                    rows={4}
                                 />
                             </div>
 

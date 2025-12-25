@@ -132,15 +132,18 @@ const AdminSettings = () => {
             </Helmet>
 
             <div className="space-y-6">
-                {/* Page Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-charcoal flex items-center gap-3">
-                            <Settings className="w-8 h-8 text-teal" />
-                            {t('settings', 'settings')}
-                        </h1>
-                        <p className="text-slate mt-1">{t('settings', 'siteSettings')}</p>
-                    </div>
+                {/* Enhanced Page Header */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-teal/20 to-teal-light/20 rounded-2xl">
+                                <Settings className="w-8 h-8 text-teal" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-charcoal">{t('settings', 'settings')}</h1>
+                                <p className="text-slate mt-1.5">{t('settings', 'siteSettings')}</p>
+                            </div>
+                        </div>
                     <div className="flex gap-3">
                         <button
                             onClick={handleReset}

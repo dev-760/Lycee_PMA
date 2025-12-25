@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Newspaper, Bell, Users, TrendingUp, Eye, PlusCircle, Shield, Clock } from 'lucide-react';
+import { FileText, Newspaper, Bell, Users, TrendingUp, Eye, PlusCircle, Shield, Clock, LayoutDashboard } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import { articles as mockArticles, adminNews as mockAdminNews, announcements as mockAnnouncements } from '@/data/mockData';
 import { useAdmin } from '@/admin/context/Context';
@@ -153,31 +153,47 @@ const AdminDashboard = () => {
             </Helmet>
 
             <div className="space-y-8">
-                {/* Page Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-charcoal">{t('admin', 'dashboard')}</h1>
-                        <p className="text-slate mt-1">{t('admin', 'welcome')}, {currentUser?.name}</p>
-                    </div>
-                    <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl shadow-card border border-gray-100">
-                        <Shield className="w-5 h-5 text-teal" />
-                        <span className="text-sm text-slate">{t('admin', 'role')}:</span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(currentUser?.role || '')}`}>
-                            {currentUser && t('roles', currentUser.role)}
-                        </span>
+                {/* Enhanced Page Header */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-teal/20 to-teal-light/20 rounded-2xl">
+                                <LayoutDashboard className="w-8 h-8 text-teal" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-charcoal">{t('admin', 'dashboard')}</h1>
+                                <p className="text-slate mt-1.5">{t('admin', 'welcome')}, {currentUser?.name}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl shadow-card border border-gray-100">
+                            <Shield className="w-5 h-5 text-teal" />
+                            <span className="text-sm text-slate">{t('admin', 'role')}:</span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(currentUser?.role || '')}`}>
+                                {currentUser && t('roles', currentUser.role)}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Welcome Card */}
-                <div className="bg-gradient-to-r from-teal to-teal-dark rounded-2xl p-6 text-white shadow-lg shadow-teal/20">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h2 className="text-2xl font-bold mb-2">{t('admin', 'welcomeMessage')}!</h2>
-                            <p className="text-white/80">
-                                {t('admin', 'welcome')} <strong>{currentUser?.name}</strong>
+                {/* Enhanced Welcome Card */}
+                <div className="relative bg-gradient-to-br from-teal via-teal-light to-teal-dark rounded-3xl p-8 text-white shadow-2xl shadow-teal/30 overflow-hidden">
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                                    <Shield className="w-6 h-6" />
+                                </div>
+                                <h2 className="text-3xl font-bold">{t('admin', 'welcomeMessage')}!</h2>
+                            </div>
+                            <p className="text-white/90 text-lg mb-3">
+                                {t('admin', 'welcome')} <strong className="text-white">{currentUser?.name}</strong>
                             </p>
                             {currentUser?.lastLogin && (
-                                <p className="text-white/60 text-sm mt-2 flex items-center gap-2">
+                                <p className="text-white/70 text-sm flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl w-fit">
                                     <Clock className="w-4 h-4" />
                                     {t('admin', 'lastLogin')}: {formatLastLogin(currentUser.lastLogin)}
                                 </p>
@@ -187,9 +203,9 @@ const AdminDashboard = () => {
                             {hasPermission('canCreate') && (
                                 <Link
                                     to="/admin/articles?action=new"
-                                    className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-xl font-medium transition-all"
+                                    className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-6 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg border border-white/20"
                                 >
-                                    <PlusCircle className="w-4 h-4" />
+                                    <PlusCircle className="w-5 h-5" />
                                     {t('admin', 'newArticle')}
                                 </Link>
                             )}
@@ -197,31 +213,36 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* Stats Grid */}
+                {/* Enhanced Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {stats.filter(s => s.show).map((stat) => (
                         <Link
                             key={stat.name}
                             to={stat.href}
-                            className="group bg-white rounded-2xl p-6 shadow-card border border-gray-100 hover:shadow-hover hover:-translate-y-1 transition-all duration-300"
+                            className="group relative bg-white rounded-3xl p-6 shadow-lg border-2 border-gray-100 hover:border-teal/30 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden"
                         >
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                                    <stat.icon className="w-6 h-6 text-white" />
+                            {/* Hover gradient effect */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                            
+                            <div className="relative z-10">
+                                <div className="flex items-center justify-between mb-5">
+                                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                                        <stat.icon className="w-7 h-7 text-white" />
+                                    </div>
+                                    <TrendingUp className="w-6 h-6 text-green-500 group-hover:scale-125 transition-transform duration-300" />
                                 </div>
-                                <TrendingUp className="w-5 h-5 text-green-500" />
+                                <p className="text-4xl font-bold text-charcoal mb-2 group-hover:text-teal transition-colors">{stat.value}</p>
+                                <p className="text-sm font-semibold text-slate group-hover:text-charcoal transition-colors">{stat.name}</p>
                             </div>
-                            <p className="text-3xl font-bold text-charcoal mb-1">{stat.value}</p>
-                            <p className="text-sm text-slate">{stat.name}</p>
                         </Link>
                     ))}
                 </div>
 
                 {/* Quick Actions & Recent Activity */}
                 <div className="grid lg:grid-cols-3 gap-6">
-                    {/* Quick Actions */}
+                    {/* Enhanced Quick Actions */}
                     {hasPermission('canCreate') && (
-                        <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-card border border-gray-100">
+                        <div className="lg:col-span-1 bg-white rounded-3xl p-6 shadow-lg border-2 border-gray-100 hover:border-teal/30 transition-all duration-300">
                             <h2 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2">
                                 <PlusCircle className="w-5 h-5 text-teal" />
                                 {t('admin', 'quickAdd')}
@@ -258,8 +279,8 @@ const AdminDashboard = () => {
                         </div>
                     )}
 
-                    {/* Recent Activity */}
-                    <div className={`${hasPermission('canCreate') ? 'lg:col-span-2' : 'lg:col-span-3'} bg-white rounded-2xl p-6 shadow-card border border-gray-100`}>
+                    {/* Enhanced Recent Activity */}
+                    <div className={`${hasPermission('canCreate') ? 'lg:col-span-2' : 'lg:col-span-3'} bg-white rounded-3xl p-6 shadow-lg border-2 border-gray-100 hover:border-teal/30 transition-all duration-300`}>
                         <h2 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2">
                             <Eye className="w-5 h-5 text-teal" />
                             {t('admin', 'recentActivity')}
@@ -284,55 +305,30 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* Permissions Overview */}
-                <div className="bg-white rounded-2xl p-6 shadow-card border border-gray-100">
-                    <h2 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-teal" />
-                        {t('admin', 'yourPermissions')}
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                        <div className={`p-3 rounded-xl text-center ${hasPermission('canViewDashboard') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-medium text-charcoal">{t('admin', 'viewDashboard')}</p>
-                        </div>
-                        <div className={`p-3 rounded-xl text-center ${hasPermission('canCreate') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-medium text-charcoal">{t('admin', 'addContent')}</p>
-                        </div>
-                        <div className={`p-3 rounded-xl text-center ${hasPermission('canEdit') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-medium text-charcoal">{t('admin', 'editContent')}</p>
-                        </div>
-                        <div className={`p-3 rounded-xl text-center ${hasPermission('canDelete') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-medium text-charcoal">{t('admin', 'deleteContent')}</p>
-                        </div>
-                        <div className={`p-3 rounded-xl text-center ${hasPermission('canManageUsers') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-medium text-charcoal">{t('admin', 'manageUsers')}</p>
-                        </div>
-                        <div className={`p-3 rounded-xl text-center ${hasPermission('canManageSettings') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-medium text-charcoal">{t('admin', 'manageSettings')}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Recent Articles Table */}
-                <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
-                    <div className="p-6 border-b border-gray-100">
-                        <h2 className="text-lg font-bold text-charcoal">{t('admin', 'recentArticles')}</h2>
+                {/* Enhanced Recent Articles Table */}
+                <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+                        <h2 className="text-xl font-bold text-charcoal flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-teal" />
+                            {t('admin', 'recentArticles')}
+                        </h2>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 border-b-2 border-gray-200">
                                 <tr>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'articleTitle')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'author')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'category')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'date')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'articleTitle')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'author')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'category')}</th>
+                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'date')}</th>
                                     {hasPermission('canEdit') && (
-                                        <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'actions')}</th>
+                                        <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'actions')}</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {recentArticles.slice(0, 5).map((article) => (
-                                    <tr key={article.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={article.id} className="hover:bg-gradient-to-r hover:from-teal/5 hover:to-teal-light/5 transition-all duration-200 group">
                                         <td className="px-6 py-4">
                                             <p className="font-medium text-charcoal text-sm line-clamp-1">{article.title}</p>
                                         </td>

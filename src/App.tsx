@@ -23,7 +23,6 @@ import AdminAnnouncements from "@/admin/pages/Announcements";
 import AdminNews from "@/admin/pages/News";
 import AdminUsers from "@/admin/pages/Users";
 import AdminSettings from "@/admin/pages/Settings";
-import SecurityLogs from "@/admin/pages/SecurityLogs";
 import AdminAbsentTeachers from "@/admin/pages/AbsentTeachers";
 import Login from "@/pages/Login";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -62,7 +61,6 @@ const App = () => (
                     <Route path="/admin/news" element={<AdminNews />} />
                     <Route path="/admin/users" element={<AdminUsers />} />
                     <Route path="/admin/settings" element={<AdminSettings />} />
-                    <Route path="/admin/security" element={<SecurityLogs />} />
                     <Route path="/admin/absent-teachers" element={<AdminAbsentTeachers />} />
                     <Route path="/admin/*" element={<AdminDashboard />} />
                   </Route>
