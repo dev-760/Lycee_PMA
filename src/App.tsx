@@ -52,7 +52,8 @@ const App = () => (
                   <Route path="/announcements" element={<Announcements />} />
 
                   {/* Admin Routes */}
-                  <Route path="/admin/login" element={<Login />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+
 
                   <Route element={<ProtectedRoute allowedRoles={['super_admin', 'editor', 'administrator']} />}>
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
