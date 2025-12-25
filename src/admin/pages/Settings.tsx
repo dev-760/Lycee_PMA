@@ -144,21 +144,22 @@ const AdminSettings = () => {
                                 <p className="text-slate mt-1.5">{t('settings', 'siteSettings')}</p>
                             </div>
                         </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleReset}
-                            className="inline-flex items-center gap-2 bg-gray-100 text-charcoal px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-all"
-                        >
-                            <RotateCcw className="w-4 h-4" />
-                            {t('settings', 'reset')}
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-teal to-teal-light text-white px-6 py-2 rounded-xl font-bold hover:shadow-lg hover:shadow-teal/30 transition-all"
-                        >
-                            <Save className="w-4 h-4" />
-                            {t('settings', 'saveSettings')}
-                        </button>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleReset}
+                                className="inline-flex items-center gap-2 bg-gray-100 text-charcoal px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-all"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                                {t('settings', 'reset')}
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-teal to-teal-light text-white px-6 py-2 rounded-xl font-bold hover:shadow-lg hover:shadow-teal/30 transition-all"
+                            >
+                                <Save className="w-4 h-4" />
+                                {t('settings', 'saveSettings')}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
