@@ -107,109 +107,89 @@ export const sanitizeInput = (input: string): string => {
     return div.innerHTML;
 };
 
-// Account Lockout Management
-const LOCKOUT_KEY_PREFIX = 'admin_lockout_';
+// Account Locking Utilities (Local Storage based)
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
-export interface LockStatus {
+interface LockStatus {
     locked: boolean;
     remainingTime: number; // in minutes
 }
 
+function getStoredAttempts(username: string): { attempts: number; lastAttempt: number; lockedUntil: number } {
+    try {
+        const key = `auth_attempts_${username}`;
+        const stored = localStorage.getItem(key);
+        if (!stored) return { attempts: 0, lastAttempt: 0, lockedUntil: 0 };
+        return JSON.parse(stored);
+    } catch {
+        return { attempts: 0, lastAttempt: 0, lockedUntil: 0 };
+    }
+}
+
 export const isAccountLocked = (username: string): LockStatus => {
-    if (typeof window === 'undefined') {
-        return { locked: false, remainingTime: 0 };
-    }
+    if (!username) return { locked: false, remainingTime: 0 };
 
-    const lockKey = `${LOCKOUT_KEY_PREFIX}${username}`;
-    const lockData = localStorage.getItem(lockKey);
-
-    if (!lockData) {
-        return { locked: false, remainingTime: 0 };
-    }
-
-    const { timestamp } = JSON.parse(lockData);
+    const { lockedUntil } = getStoredAttempts(username);
     const now = Date.now();
-    const elapsed = now - timestamp;
 
-    if (elapsed >= LOCKOUT_DURATION_MS) {
-        // Lockout period expired
-        localStorage.removeItem(lockKey);
-        return { locked: false, remainingTime: 0 };
+    if (lockedUntil > now) {
+        const remainingMs = lockedUntil - now;
+        return {
+            locked: true,
+            remainingTime: Math.ceil(remainingMs / 60000)
+        };
     }
 
-    const remainingMs = LOCKOUT_DURATION_MS - elapsed;
-    const remainingTime = Math.ceil(remainingMs / 60000); // Convert to minutes
-
-    return { locked: true, remainingTime };
+    return { locked: false, remainingTime: 0 };
 };
 
 export const getRemainingAttempts = (username: string): number => {
-    if (typeof window === 'undefined') {
-        return MAX_ATTEMPTS;
-    }
+    if (!username) return MAX_ATTEMPTS;
 
-    const lockKey = `${LOCKOUT_KEY_PREFIX}${username}_attempts`;
-    const attemptsData = localStorage.getItem(lockKey);
-
-    if (!attemptsData) {
-        return MAX_ATTEMPTS;
-    }
-
-    const { count, timestamp } = JSON.parse(attemptsData);
+    const { attempts, lockedUntil } = getStoredAttempts(username);
     const now = Date.now();
 
-    // Reset attempts if lockout period has expired
-    if (now - timestamp >= LOCKOUT_DURATION_MS) {
-        localStorage.removeItem(lockKey);
-        return MAX_ATTEMPTS;
-    }
+    if (lockedUntil > now) return 0;
 
-    return Math.max(0, MAX_ATTEMPTS - count);
+    // Reset attempts if sufficient time passed since last attempt (e.g., 1 hour) without lock
+    // For simplicity, we just return max - attempts
+    return Math.max(0, MAX_ATTEMPTS - attempts);
 };
 
-export const recordFailedAttempt = (username: string): void => {
-    if (typeof window === 'undefined') {
-        return;
-    }
-
-    const lockKey = `${LOCKOUT_KEY_PREFIX}${username}_attempts`;
-    const attemptsData = localStorage.getItem(lockKey);
+export const recordFailedAttempt = (username: string): { locked: boolean; remainingAttempts: number; lockedMinutes?: number } => {
+    const { attempts, lockedUntil } = getStoredAttempts(username);
     const now = Date.now();
 
-    if (!attemptsData) {
-        localStorage.setItem(lockKey, JSON.stringify({ count: 1, timestamp: now }));
-        return;
+    if (lockedUntil > now) return { locked: true, remainingAttempts: 0 }; // Already locked
+
+    const newAttempts = attempts + 1;
+    let newLockedUntil = 0;
+
+    if (newAttempts >= MAX_ATTEMPTS) {
+        newLockedUntil = now + LOCK_DURATION_MS;
     }
 
-    const { count, timestamp } = JSON.parse(attemptsData);
+    localStorage.setItem(`auth_attempts_${username}`, JSON.stringify({
+        attempts: newAttempts,
+        lastAttempt: now,
+        lockedUntil: newLockedUntil
+    }));
 
-    // Reset if lockout period expired
-    if (now - timestamp >= LOCKOUT_DURATION_MS) {
-        localStorage.setItem(lockKey, JSON.stringify({ count: 1, timestamp: now }));
-        return;
+    if (newLockedUntil > 0) {
+        return {
+            locked: true,
+            remainingAttempts: 0,
+            lockedMinutes: Math.ceil(LOCK_DURATION_MS / 60000)
+        };
     }
 
-    const newCount = count + 1;
-
-    if (newCount >= MAX_ATTEMPTS) {
-        // Lock the account
-        const lockDataKey = `${LOCKOUT_KEY_PREFIX}${username}`;
-        localStorage.setItem(lockDataKey, JSON.stringify({ timestamp: now }));
-    }
-
-    localStorage.setItem(lockKey, JSON.stringify({ count: newCount, timestamp }));
+    return {
+        locked: false,
+        remainingAttempts: MAX_ATTEMPTS - newAttempts
+    };
 };
 
-export const clearAccountLock = (username: string): void => {
-    if (typeof window === 'undefined') {
-        return;
-    }
-
-    const lockKey = `${LOCKOUT_KEY_PREFIX}${username}`;
-    const attemptsKey = `${LOCKOUT_KEY_PREFIX}${username}_attempts`;
-
-    localStorage.removeItem(lockKey);
-    localStorage.removeItem(attemptsKey);
+export const resetAttempts = (username: string) => {
+    localStorage.removeItem(`auth_attempts_${username}`);
 };

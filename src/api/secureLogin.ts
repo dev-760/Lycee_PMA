@@ -1,32 +1,57 @@
 import type { AuthResponse } from "./auth.types";
 
-const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_REF;
-
-if (!PROJECT_REF) {
-    throw new Error("Missing VITE_SUPABASE_PROJECT_REF");
-}
-
+// function secureLogin
 export async function secureLogin(
     email: string,
     password: string
 ): Promise<AuthResponse> {
-    const response = await fetch(
-        `https://${PROJECT_REF}.functions.supabase.co/secure-login`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        }
-    );
+    const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_REF;
+    const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    const data = await response.json();
-
-    if (!response.ok) {
+    if (!PROJECT_REF || !ANON_KEY) {
+        console.error("Missing Supabase environment variables");
         return {
             success: false,
-            error: data?.error ?? "Authentication failed",
+            error: "Configuration Error: Missing Supabase Credentials"
         };
     }
+    try {
+        const response = await fetch(
+            `https://${PROJECT_REF}.functions.supabase.co/secure-login`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${ANON_KEY}`
+                },
+                body: JSON.stringify({ email, password }),
+            }
+        );
 
-    return data as AuthResponse;
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            console.error("Failed to parse response JSON", e);
+            return {
+                success: false,
+                error: `Server Error: ${response.status} ${response.statusText}`
+            };
+        }
+
+        if (!response.ok) {
+            return {
+                success: false,
+                error: data?.error ?? `Authentication failed (${response.status})`,
+            };
+        }
+
+        return data as AuthResponse;
+    } catch (error: any) {
+        console.error("Login request failed", error);
+        return {
+            success: false,
+            error: error.message || "Network request failed"
+        };
+    }
 }

@@ -24,7 +24,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
-import { LoginCredentials } from "@/api/secureLogin";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -57,13 +56,8 @@ export default function Login() {
     async function onSubmit(data: LoginFormValues) {
         setServerError(null);
 
-        const credentials: LoginCredentials = {
-            email: data.email,
-            password: data.password
-        };
-
         try {
-            const response = await login(credentials);
+            const response = await login(data.email, data.password);
 
             if (response.success) {
                 toast({

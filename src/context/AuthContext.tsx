@@ -6,7 +6,8 @@ import { getSession, saveSession, clearSession } from "@/lib/auth-storage";
 interface AuthContextType {
     user: AuthUser | null;
     isAuthenticated: boolean;
-    login(email: string, password: string): Promise<boolean>;
+    isLoading: boolean;
+    login(email: string, password: string): Promise<import("@/api/auth.types").AuthResponse>;
     logout(): void;
     hasRole(roles: UserRole[]): boolean;
 }
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         const session = getSession();
@@ -24,12 +26,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     async function login(email: string, password: string) {
-        const response = await secureLogin(email, password);
-        if (!response.success) return false;
-
-        saveSession(response);
-        setUser(response.user);
-        return true;
+        setIsLoading(true);
+        try {
+            const response = await secureLogin(email, password);
+            if (response.success) {
+                saveSession(response);
+                setUser(response.user);
+            }
+            return response;
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     function logout() {
@@ -46,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             value={{
                 user,
                 isAuthenticated: Boolean(user),
+                isLoading,
                 login,
                 logout,
                 hasRole,
