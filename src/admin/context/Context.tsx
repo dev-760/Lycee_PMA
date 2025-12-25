@@ -168,11 +168,17 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
     const login = async (username: string, password: string): Promise<LoginResult> => {
         const email = username; // Assume email for now
-        const success = await authLogin(email, password);
+        const response = await authLogin(email, password);
+
+        if (!response.success) {
+            return {
+                success: false,
+                error: response.error
+            };
+        }
 
         return {
-            success,
-            error: success ? undefined : 'Login failed'
+            success: true
         };
     };
 
