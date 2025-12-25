@@ -9,8 +9,10 @@ export default function Login() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        const success = await login(email, password);
-        if (!success) setError("Invalid credentials");
+        const response = await login(email, password);
+        if (!response.success) {
+            setError(response.error);
+        }
     }
 
     return (
