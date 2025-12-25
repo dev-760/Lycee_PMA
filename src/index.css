@@ -1,0 +1,380 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* New Color Palette - Academic & Professional */
+    /* Primary: Deep Royal Blue #0F2A44 */
+    /* Accent: Gold/Brass #C6A24A */
+    /* Background: Ivory/Off-White #F4F1EC */
+    /* Text: Charcoal #2B2B2B */
+
+    --background: 36 17% 95%;
+    /* #F4F1EC */
+    --foreground: 0 0% 17%;
+    /* #2B2B2B */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 17%;
+
+    /* Deep Royal Blue Primary */
+    --primary: 210 64% 16%;
+    /* #0F2A44 */
+    --primary-foreground: 36 17% 95%;
+
+    /* Warm Gray Secondary */
+    --secondary: 36 17% 90%;
+    --secondary-foreground: 210 64% 16%;
+
+    --muted: 36 10% 88%;
+    --muted-foreground: 0 0% 40%;
+
+    /* Gold Accent */
+    --accent: 42 50% 53%;
+    /* #C6A24A */
+    --accent-foreground: 0 0% 100%;
+
+    /* Warm Gold Highlight */
+    --highlight: 42 50% 53%;
+    --highlight-foreground: 210 64% 16%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 36 10% 85%;
+    --input: 36 10% 85%;
+    --ring: 42 50% 53%;
+
+    --radius: 0.75rem;
+
+    /* Custom Colors */
+    --navy: 210 64% 16%;
+    /* #0F2A44 */
+    --navy-light: 210 50% 25%;
+    --charcoal: 0 0% 17%;
+    /* #2B2B2B */
+    --charcoal-light: 0 0% 30%;
+    --teal: 210 64% 16%;
+    /* Using navy as primary */
+    --teal-light: 210 50% 25%;
+    --teal-dark: 210 70% 12%;
+    --gold: 42 50% 53%;
+    /* #C6A24A */
+    --gold-light: 42 45% 63%;
+    --slate: 0 0% 45%;
+    --warm-gray: 36 10% 60%;
+    --ivory: 36 17% 95%;
+    /* #F4F1EC */
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(210 64% 16% / 0.06);
+    --shadow-card: 0 2px 15px -3px hsl(210 64% 16% / 0.08);
+    --shadow-hover: 0 12px 35px -8px hsl(210 64% 16% / 0.12);
+    --shadow-nav: 0 4px 30px -4px hsl(210 64% 16% / 0.1);
+
+    /* Sidebar */
+    --sidebar-background: 210 64% 16%;
+    --sidebar-foreground: 36 17% 95%;
+    --sidebar-primary: 42 50% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 22%;
+    --sidebar-accent-foreground: 36 17% 95%;
+    --sidebar-border: 210 50% 20%;
+    --sidebar-ring: 42 50% 53%;
+  }
+
+  .dark {
+    --background: 210 30% 8%;
+    --foreground: 36 17% 93%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 36 17% 93%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 36 17% 93%;
+
+    --primary: 42 50% 53%;
+    --primary-foreground: 210 30% 8%;
+
+    --secondary: 210 20% 18%;
+    --secondary-foreground: 36 17% 93%;
+
+    --muted: 210 20% 15%;
+    --muted-foreground: 36 10% 65%;
+
+    --accent: 210 40% 30%;
+    --accent-foreground: 36 17% 93%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 36 17% 93%;
+
+    --border: 210 20% 18%;
+    --input: 210 20% 18%;
+    --ring: 42 50% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+
+  html[dir="ltr"] {
+    direction: ltr;
+  }
+
+  body {
+    @apply bg-background text-foreground font-tajawal antialiased;
+    background-color: #F4F1EC;
+  }
+}
+
+@layer components {
+  .text-gradient {
+    @apply bg-gradient-to-l from-navy via-navy-light to-navy bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-l from-gold via-gold-light to-gold bg-clip-text text-transparent;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
+  }
+
+  .accent-border {
+    @apply border-b-4 border-gold;
+  }
+
+  .section-title {
+    @apply text-xl font-bold text-navy mb-4 pb-2 border-b-2 border-gold inline-block;
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-sm;
+  }
+
+  .glass-nav {
+    @apply bg-white/95 backdrop-blur-md;
+  }
+
+  /* Premium Button Styles - Following new color scheme */
+  .btn-premium {
+    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform;
+    background-color: #0F2A44;
+    color: #F4F1EC;
+    @apply hover:shadow-lg hover:-translate-y-0.5;
+    @apply active:translate-y-0;
+  }
+
+  .btn-premium:hover {
+    border: 2px solid #C6A24A;
+  }
+
+  .btn-outline-premium {
+    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300;
+    border: 2px solid #0F2A44;
+    color: #0F2A44;
+    background: transparent;
+  }
+
+  .btn-outline-premium:hover {
+    border-color: #C6A24A;
+    color: #C6A24A;
+  }
+
+  /* Navigation link hover effect */
+  .nav-link {
+    @apply relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300;
+    color: #0F2A44;
+  }
+
+  .nav-link:hover {
+    color: #C6A24A;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-1/2 w-0 h-0.5;
+    background: linear-gradient(to right, #C6A24A, #D4B35C);
+    @apply transition-all duration-300 -translate-x-1/2;
+  }
+
+  .nav-link:hover::after {
+    @apply w-3/4;
+  }
+
+  .nav-link-active {
+    color: #C6A24A;
+  }
+
+  .nav-link-active::after {
+    @apply w-3/4;
+  }
+
+  /* Sidebar section styling */
+  .sidebar-section {
+    @apply bg-white rounded-2xl shadow-card p-6 border border-gray-100/80;
+    @apply transition-all duration-300 hover:shadow-hover;
+  }
+
+  .sidebar-title {
+    @apply flex items-center gap-3 mb-5;
+  }
+
+  .sidebar-title-bar {
+    @apply w-1 h-6 rounded-full;
+    background: linear-gradient(to bottom, #C6A24A, #D4B35C);
+  }
+
+  .sidebar-title-text {
+    @apply text-lg font-bold;
+    color: #0F2A44;
+  }
+
+  /* Header styling */
+  .header-primary {
+    background-color: #0F2A44;
+    color: #F4F1EC;
+  }
+
+  .header-accent-line {
+    height: 3px;
+    background-color: #C6A24A;
+  }
+
+  /* Footer styling */
+  .footer-primary {
+    background-color: #0F2A44;
+    color: #F4F1EC;
+  }
+
+  /* Link styling */
+  .link-primary {
+    color: #0F2A44;
+    transition: color 0.3s ease;
+  }
+
+  .link-primary:hover {
+    color: #C6A24A;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Gradient backgrounds with new colors */
+  .bg-gradient-premium {
+    background: linear-gradient(to bottom right, #0F2A44, #163A5C, #0F2A44);
+  }
+
+  .bg-gradient-gold {
+    background: linear-gradient(to bottom right, #C6A24A, #D4B35C, #C6A24A);
+  }
+
+  .bg-gradient-warm {
+    background: linear-gradient(to bottom right, #F4F1EC, #FBF9F6, #F4F1EC);
+  }
+
+  /* Text colors */
+  .text-royal-blue {
+    color: #0F2A44;
+  }
+
+  .text-gold-accent {
+    color: #C6A24A;
+  }
+
+  .text-body {
+    color: #2B2B2B;
+  }
+
+  /* Background colors */
+  .bg-royal-blue {
+    background-color: #0F2A44;
+  }
+
+  .bg-gold-accent {
+    background-color: #C6A24A;
+  }
+
+  .bg-ivory {
+    background-color: #F4F1EC;
+  }
+}
