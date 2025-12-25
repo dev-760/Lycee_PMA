@@ -1,9 +1,10 @@
 import type { AuthResponse } from "./auth.types";
 
 const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_REF;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!PROJECT_REF) {
-    throw new Error("Missing VITE_SUPABASE_PROJECT_REF");
+if (!PROJECT_REF || !ANON_KEY) {
+    throw new Error("Missing Supabase environment variables");
 }
 
 export async function secureLogin(
@@ -14,7 +15,10 @@ export async function secureLogin(
         `https://${PROJECT_REF}.functions.supabase.co/secure-login`,
         {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${ANON_KEY}`
+            },
             body: JSON.stringify({ email, password }),
         }
     );
