@@ -6,7 +6,7 @@ import { getSession, saveSession, clearSession } from "@/lib/auth-storage";
 interface AuthContextType {
     user: AuthUser | null;
     isAuthenticated: boolean;
-    login(email: string, password: string): Promise<boolean>;
+    login(email: string, password: string): Promise<import("@/api/auth.types").AuthResponse>;
     logout(): void;
     hasRole(roles: UserRole[]): boolean;
 }
@@ -25,11 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function login(email: string, password: string) {
         const response = await secureLogin(email, password);
-        if (!response.success) return false;
-
-        saveSession(response);
-        setUser(response.user);
-        return true;
+        if (response.success) {
+            saveSession(response);
+            setUser(response.user);
+        }
+        return response;
     }
 
     function logout() {
