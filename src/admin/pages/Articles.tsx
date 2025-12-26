@@ -147,7 +147,7 @@ const AdminArticles = () => {
                 // Create
                 const newArticleData = {
                     ...formData,
-                    date: new Date().toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }),
+                    date: new Date().toISOString().split('T')[0],
                     featured: false
                 };
 
@@ -278,7 +278,9 @@ const AdminArticles = () => {
                                                 {article.category}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate">{article.date}</td>
+                                        <td className="px-6 py-4 text-sm text-slate">
+                                            {new Date(article.date).toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <a

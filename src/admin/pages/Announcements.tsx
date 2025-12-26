@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { api } from '@/lib/api';
 import {
     Plus,
     Search,
@@ -22,7 +23,8 @@ import { useToast } from '@/hooks/use-toast';
 const AdminAnnouncements = () => {
     const { hasPermission } = useAdmin();
     const { t, language } = useLanguage();
-    const [announcements, setAnnouncements] = useState<Announcement[]>(initialAnnouncements);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -32,6 +34,22 @@ const AdminAnnouncements = () => {
         urgent: false
     });
     const { toast } = useToast();
+
+    // Fetch Announcements
+    useEffect(() => {
+        const fetchAnnouncements = async () => {
+            try {
+                const data = await api.announcements.getAll();
+                if (data) setAnnouncements(data);
+            } catch (e) {
+                console.error("Failed to load announcements", e);
+                toast({ title: t('common', 'error'), description: 'Failed to load announcements', variant: 'destructive' });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAnnouncements();
+    }, []);
 
     // Check if user can access announcements - only super_admin and administrator
     if (!hasPermission('canManageAnnouncements')) {
@@ -84,30 +102,40 @@ const AdminAnnouncements = () => {
         setIsModalOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editingAnnouncement) {
-            setAnnouncements(announcements.map(a =>
-                a.id === editingAnnouncement.id
-                    ? { ...a, ...formData }
-                    : a
-            ));
-            toast({ title: t('messages', 'updated'), description: t('announcements', 'announcementUpdated') });
-        } else {
-            const newAnnouncement: Announcement = {
-                id: Math.max(...announcements.map(a => a.id)) + 1,
-                ...formData,
-                date: new Date().toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })
-            };
-            setAnnouncements([newAnnouncement, ...announcements]);
-            toast({ title: t('messages', 'added'), description: t('announcements', 'announcementAdded') });
-        }
+        try {
+            if (editingAnnouncement) {
+                await api.announcements.update(editingAnnouncement.id, {
+                    ...formData,
+                    // keep original date
+                });
 
-        setIsModalOpen(false);
+                // Optimistic or refetch
+                setAnnouncements(announcements.map(a =>
+                    a.id === editingAnnouncement.id ? { ...a, ...formData } : a
+                ));
+                toast({ title: t('messages', 'updated'), description: t('announcements', 'announcementUpdated') });
+            } else {
+                const newAnnouncement = {
+                    ...formData,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                const created = await api.announcements.create(newAnnouncement);
+                if (created) {
+                    setAnnouncements([created, ...announcements]);
+                    toast({ title: t('messages', 'added'), description: t('announcements', 'announcementAdded') });
+                }
+            }
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast({ title: t('common', 'error'), description: 'Operation failed', variant: 'destructive' });
+        }
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if (!hasPermission('canDelete')) {
             toast({
                 title: t('messages', 'notAllowed'),
@@ -117,12 +145,18 @@ const AdminAnnouncements = () => {
             return;
         }
         if (confirm(t('announcements', 'confirmDelete'))) {
-            setAnnouncements(announcements.filter(a => a.id !== id));
-            toast({ title: t('messages', 'deleted'), description: t('announcements', 'announcementDeleted') });
+            try {
+                await api.announcements.delete(id);
+                setAnnouncements(announcements.filter(a => a.id !== id));
+                toast({ title: t('messages', 'deleted'), description: t('announcements', 'announcementDeleted') });
+            } catch (error) {
+                console.error(error);
+                toast({ title: t('common', 'error'), description: 'Delete failed', variant: 'destructive' });
+            }
         }
     };
 
-    const toggleUrgent = (id: number) => {
+    const toggleUrgent = async (id: number) => {
         if (!hasPermission('canEdit')) {
             toast({
                 title: t('messages', 'notAllowed'),
@@ -131,9 +165,20 @@ const AdminAnnouncements = () => {
             });
             return;
         }
-        setAnnouncements(announcements.map(a =>
-            a.id === id ? { ...a, urgent: !a.urgent } : a
-        ));
+
+        const announcement = announcements.find(a => a.id === id);
+        if (!announcement) return;
+
+        try {
+            const newState = !announcement.urgent;
+            await api.announcements.update(id, { urgent: newState });
+            setAnnouncements(announcements.map(a =>
+                a.id === id ? { ...a, urgent: newState } : a
+            ));
+        } catch (error) {
+            console.error(error);
+            toast({ title: t('common', 'error'), description: 'Update failed', variant: 'destructive' });
+        }
     };
 
     return (
@@ -225,7 +270,7 @@ const AdminAnnouncements = () => {
                                 )}
                                 <p className="text-xs text-slate flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
-                                    {announcement.date}
+                                    {new Date(announcement.date).toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </p>
                             </div>
 

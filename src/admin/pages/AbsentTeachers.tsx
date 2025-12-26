@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { AbsentTeacher as AbsentTeacherType } from '@/components/AbsentTeachers';
 import {
   Users,
   Plus,
@@ -39,7 +41,8 @@ const formatDuration = (days: number, lang: string) => {
 const AbsentTeachersAdmin = () => {
   const { hasPermission } = useAdmin();
   const { language, isRTL } = useLanguage();
-  const [teachers, setTeachers] = useState<AbsentTeacher[]>([]);
+  const [teachers, setTeachers] = useState<AbsentTeacherType[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<AbsentTeacher | null>(null);
@@ -85,7 +88,17 @@ const AbsentTeachersAdmin = () => {
   }[language] ?? t.en;
 
   useEffect(() => {
-    setTeachers(getAbsentTeachers());
+    const fetchTeachers = async () => {
+      try {
+        const data = await api.absentTeachers.getAll();
+        if (data) setTeachers(data);
+      } catch (e) {
+        console.error("Failed to load absent teachers", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeachers();
   }, []);
 
   const canEdit = hasPermission('canManageAnnouncements');
@@ -103,39 +116,46 @@ const AbsentTeachersAdmin = () => {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateDates()) return;
 
     const days = calculateDays(formData.dateFrom, formData.dateTo);
     const duration = formatDuration(days, language);
 
-    const dateFrom = new Date(formData.dateFrom).toLocaleDateString('fr-FR');
-    const dateTo = new Date(formData.dateTo).toLocaleDateString('fr-FR');
+    // formatted strings for French display, but we should store raw dates in DB if possible, 
+    // but the component interface says dateFrom dateTo are strings. 
+    // The API expects YYYY-MM-DD
+    const dateFrom = formData.dateFrom;
+    const dateTo = formData.dateTo;
 
-    if (editingTeacher) {
-      const updated = teachers.map(t =>
-        t.id === editingTeacher.id
-          ? { ...t, ...formData, duration, dateFrom, dateTo }
-          : t
-      );
-      setTeachers(updated);
-      saveAbsentTeachers(updated);
-    } else {
-      const newTeacher: AbsentTeacher = {
-        id: Date.now().toString(),
-        ...formData,
-        duration,
-        dateFrom,
-        dateTo
-      };
-      const updated = [...teachers, newTeacher];
-      setTeachers(updated);
-      saveAbsentTeachers(updated);
+    try {
+      if (editingTeacher) {
+        const updatePayload = {
+          ...formData,
+          duration
+        };
+        const updatedTeacher = await api.absentTeachers.update(editingTeacher.id, updatePayload);
+        const updated = teachers.map(t =>
+          t.id === editingTeacher.id
+            ? updatedTeacher
+            : t
+        );
+        setTeachers(updated);
+      } else {
+        const newTeacherData = {
+          ...formData,
+          duration
+        };
+        const newTeacher = await api.absentTeachers.create(newTeacherData);
+        setTeachers([...teachers, newTeacher]);
+      }
+      setShowModal(false);
+      setEditingTeacher(null);
+    } catch (err) {
+      console.error("Error saving teacher", err);
+      setError("Error saving teacher");
     }
-
-    setShowModal(false);
-    setEditingTeacher(null);
   };
 
   return (

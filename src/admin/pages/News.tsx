@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { api } from '@/lib/api';
 import {
     Plus,
     Search,
@@ -21,7 +22,8 @@ import { useToast } from '@/hooks/use-toast';
 const AdminNews = () => {
     const { hasPermission } = useAdmin();
     const { t, language } = useLanguage();
-    const [news, setNews] = useState<Article[]>(initialNews);
+    const [news, setNews] = useState<Article[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNews, setEditingNews] = useState<Article | null>(null);
@@ -34,6 +36,27 @@ const AdminNews = () => {
         image: ''
     });
     const { toast } = useToast();
+
+    // Fetch News
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const data = await api.articles.getAll();
+                // Filter for news categories if needed, or if backend doesn't filter.
+                // Assuming 'أخبار الإدارة' is the category for "News" in this specific admin page context
+                if (data) {
+                    const newsItems = data.filter(item => item.category === 'أخبار الإدارة' || item.category === 'أخبار المؤسسة');
+                    setNews(newsItems);
+                }
+            } catch (e) {
+                console.error("Failed to load news", e);
+                toast({ title: t('common', 'error'), description: 'Failed to load news', variant: 'destructive' });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchNews();
+    }, []);
 
     // Check if user can access news - only super_admin and editor
     if (!hasPermission('canManageNews')) {
@@ -97,30 +120,41 @@ const AdminNews = () => {
         setIsModalOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (editingNews) {
-            setNews(news.map(n =>
-                n.id === editingNews.id
-                    ? { ...n, ...formData }
-                    : n
-            ));
-            toast({ title: t('messages', 'updated'), description: t('news', 'newsUpdated') });
-        } else {
-            const newNewsItem: Article = {
-                id: Math.max(...news.map(n => n.id)) + 1,
-                ...formData,
-                date: new Date().toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })
-            };
-            setNews([newNewsItem, ...news]);
-            toast({ title: t('messages', 'added'), description: t('news', 'newsAdded') });
-        }
+        try {
+            if (editingNews) {
+                await api.articles.update(editingNews.id, {
+                    ...formData,
+                    // keep original date
+                });
 
-        setIsModalOpen(false);
+                setNews(news.map(n =>
+                    n.id === editingNews.id ? { ...n, ...formData } : n
+                ));
+                toast({ title: t('messages', 'updated'), description: t('news', 'newsUpdated') });
+            } else {
+                const newNewsItem = {
+                    ...formData,
+                    date: new Date().toISOString().split('T')[0],
+                    featured: false
+                };
+
+                const created = await api.articles.create(newNewsItem);
+                if (created) {
+                    setNews([created, ...news]);
+                    toast({ title: t('messages', 'added'), description: t('news', 'newsAdded') });
+                }
+            }
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast({ title: t('common', 'error'), description: 'Operation failed', variant: 'destructive' });
+        }
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if (!hasPermission('canDelete')) {
             toast({
                 title: t('messages', 'notAllowed'),
@@ -130,8 +164,14 @@ const AdminNews = () => {
             return;
         }
         if (confirm(t('news', 'confirmDelete'))) {
-            setNews(news.filter(n => n.id !== id));
-            toast({ title: t('messages', 'deleted'), description: t('news', 'newsDeleted') });
+            try {
+                await api.articles.delete(id);
+                setNews(news.filter(n => n.id !== id));
+                toast({ title: t('messages', 'deleted'), description: t('news', 'newsDeleted') });
+            } catch (error) {
+                console.error(error);
+                toast({ title: t('common', 'error'), description: 'Delete failed', variant: 'destructive' });
+            }
         }
     };
 
@@ -222,7 +262,9 @@ const AdminNews = () => {
                                             <p className="font-medium text-charcoal text-sm line-clamp-1 max-w-xs">{item.title}</p>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate">{item.author}</td>
-                                        <td className="px-6 py-4 text-sm text-slate">{item.date}</td>
+                                        <td className="px-6 py-4 text-sm text-slate">
+                                            {new Date(item.date).toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <a
