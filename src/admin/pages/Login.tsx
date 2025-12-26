@@ -8,9 +8,7 @@ import {
     AlertCircle,
     Eye,
     EyeOff,
-    Shield,
-    Clock,
-    AlertTriangle
+    Clock
 } from 'lucide-react';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
@@ -99,30 +97,19 @@ const AdminLogin = () => {
                                 className="w-24 h-24 object-contain"
                             />
                         </div>
-                        <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">
-                            {t('auth', 'controlPanel')}
-                        </h1>
-                        <p className="text-white/70 text-base font-medium">
-                            {t('common', 'siteName')}
-                        </p>
-                        <div className="mt-4 flex items-center justify-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-teal animate-pulse" />
-                            <span className="text-white/50 text-xs">Secure Admin Access</span>
-                            <div className="w-2 h-2 rounded-full bg-teal animate-pulse delay-300" />
-                        </div>
                     </div>
 
                     {/* Enhanced Card */}
                     <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 transform hover:scale-[1.01] transition-all duration-300">
                         <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal to-teal-light mb-4 shadow-lg">
-                                <Shield className="w-8 h-8 text-white" />
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white mb-4 shadow-lg">
+                                <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
                             </div>
                             <h2 className="text-2xl font-bold text-charcoal mb-2">
                                 {t('auth', 'login')}
                             </h2>
                             <p className="text-slate text-sm">
-                                Enter your credentials to access the admin panel
+                                Lycée PMA panel
                             </p>
                         </div>
 
@@ -154,7 +141,7 @@ const AdminLogin = () => {
                             {/* Email */}
                             <div className="space-y-2">
                                 <label className="block text-sm font-semibold text-charcoal mb-2">
-                                    {t('auth', 'email')}
+                                    {t('auth', 'Email')}
                                 </label>
                                 <div className="relative group">
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
@@ -165,7 +152,7 @@ const AdminLogin = () => {
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
                                         className="w-full pr-12 pl-4 py-4 rounded-2xl border-2 border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-teal/20 focus:border-teal outline-none transition-all duration-200 placeholder:text-gray-400"
-                                        placeholder={t('auth', 'enterEmail')}
+                                        placeholder={t('auth', ' Enter Email')}
                                         required
                                         autoComplete="email"
                                         disabled={isLoading}
