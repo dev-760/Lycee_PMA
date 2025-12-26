@@ -101,11 +101,11 @@ const AdminUsers = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (editingUser) {
-            const result = updateUser(editingUser.id, {
+            const result = await updateUser(editingUser.id, {
                 name: formData.name,
                 email: formData.email,
                 role: formData.role,
@@ -125,7 +125,7 @@ const AdminUsers = () => {
                 return;
             }
 
-            const result = addUser({
+            const result = await addUser({
                 username: formData.username,
                 password: formData.password,
                 name: formData.name,
@@ -143,10 +143,10 @@ const AdminUsers = () => {
         }
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!userToDelete) return;
 
-        const result = deleteUser(userToDelete.id);
+        const result = await deleteUser(userToDelete.id);
         if (result.success) {
             toast({ title: t('messages', 'deleted'), description: t('users', 'userDeleted') });
             setIsDeleteModalOpen(false);
@@ -430,18 +430,18 @@ const AdminUsers = () => {
                                                     <div
                                                         key={level}
                                                         className={`h-full flex-1 rounded-full transition-colors ${passwordStrength.score >= level
-                                                                ? passwordStrength.score >= 3
-                                                                    ? 'bg-green-500'
-                                                                    : passwordStrength.score >= 2
-                                                                        ? 'bg-yellow-500'
-                                                                        : 'bg-red-500'
-                                                                : 'bg-gray-200'
+                                                            ? passwordStrength.score >= 3
+                                                                ? 'bg-green-500'
+                                                                : passwordStrength.score >= 2
+                                                                    ? 'bg-yellow-500'
+                                                                    : 'bg-red-500'
+                                                            : 'bg-gray-200'
                                                             }`}
                                                     />
                                                 ))}
                                             </div>
                                             <span className={`text-xs font-medium ${passwordStrength.score >= 3 ? 'text-green-600' :
-                                                    passwordStrength.score >= 2 ? 'text-yellow-600' : 'text-red-500'
+                                                passwordStrength.score >= 2 ? 'text-yellow-600' : 'text-red-500'
                                                 }`}>
                                                 {passwordStrength.score >= 4
                                                     ? (language === 'ar' ? 'قوية جداً' : language === 'fr' ? 'Très fort' : 'Very Strong')
