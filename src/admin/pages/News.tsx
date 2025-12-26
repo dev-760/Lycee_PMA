@@ -39,15 +39,15 @@ import { uploadImage, validateImageFile } from '@/lib/storage';
 // News categories - all news types
 const NEWS_CATEGORIES = {
   ar: [
-    { value: 'أخبار المؤسسة', label: 'أخبار المؤسسة', icon: Building2, color: 'blue' },
+    { value: 'أخبار المؤسسة', label: 'أخبار', icon: Building2, color: 'blue' },
     { value: 'أخبار الإدارة', label: 'أخبار الإدارة', icon: Users, color: 'purple' }
   ],
   fr: [
-    { value: 'أخبار المؤسسة', label: "Actualités de l'institution", icon: Building2, color: 'blue' },
+    { value: 'أخبار المؤسسة', label: 'Actualités', icon: Building2, color: 'blue' },
     { value: 'أخبار الإدارة', label: "Actualités de l'administration", icon: Users, color: 'purple' }
   ],
   en: [
-    { value: 'أخبار المؤسسة', label: 'Institution News', icon: Building2, color: 'blue' },
+    { value: 'أخبار المؤسسة', label: 'News', icon: Building2, color: 'blue' },
     { value: 'أخبار الإدارة', label: 'Administration News', icon: Users, color: 'purple' }
   ]
 };
@@ -500,8 +500,8 @@ const AdminNews = () => {
                     type="button"
                     onClick={() => setFormData({ ...formData, source_language: lang })}
                     className={`px-4 py-2 rounded-lg font-medium transition-all ${formData.source_language === lang
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
                       }`}
                   >
                     {LANGUAGE_NAMES[lang]}

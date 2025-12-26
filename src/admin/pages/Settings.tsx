@@ -109,7 +109,6 @@ const AdminSettings = () => {
     const tabs = [
         { id: 'general', name: t('settings', 'general'), icon: Globe },
         { id: 'social', name: t('settings', 'social'), icon: Facebook },
-        { id: 'appearance', name: t('settings', 'appearance'), icon: Palette },
         { id: 'notifications', name: t('settings', 'notifications'), icon: Bell },
         { id: 'advanced', name: t('settings', 'advanced'), icon: Shield },
     ];
@@ -332,51 +331,6 @@ const AdminSettings = () => {
                         </div>
                     )}
 
-                    {/* Appearance Settings */}
-                    {activeTab === 'appearance' && (
-                        <div className="space-y-6">
-                            <h2 className="text-lg font-bold text-charcoal flex items-center gap-2">
-                                <Palette className="w-5 h-5 text-teal" />
-                                {t('settings', 'appearanceSettings')}
-                            </h2>
-
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('settings', 'primaryColor')}</label>
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="color"
-                                        value={settings.primaryColor}
-                                        onChange={(e) => setSettings({ ...settings, primaryColor: e.target.value })}
-                                        className="w-16 h-16 rounded-xl border border-gray-200 cursor-pointer"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={settings.primaryColor}
-                                        onChange={(e) => setSettings({ ...settings, primaryColor: e.target.value })}
-                                        className="flex-1 p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none font-mono"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="p-6 rounded-xl bg-gray-50 border border-gray-200">
-                                <h3 className="font-semibold text-charcoal mb-4">{t('settings', 'colorPreview')}</h3>
-                                <div className="flex gap-4">
-                                    <button
-                                        style={{ backgroundColor: settings.primaryColor }}
-                                        className="px-6 py-3 rounded-xl text-white font-medium"
-                                    >
-                                        {t('common', 'save')}
-                                    </button>
-                                    <button
-                                        style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}
-                                        className="px-6 py-3 rounded-xl border-2 font-medium bg-white"
-                                    >
-                                        {t('common', 'cancel')}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Notification Settings */}
                     {activeTab === 'notifications' && (
@@ -432,25 +386,6 @@ const AdminSettings = () => {
                                 {t('settings', 'advancedSettings')}
                             </h2>
 
-                            <div className="flex items-center justify-between p-4 rounded-xl bg-red-50 border border-red-200">
-                                <div>
-                                    <h3 className="font-semibold text-charcoal flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4 text-red-500" />
-                                        {t('settings', 'maintenanceMode')}
-                                    </h3>
-                                    <p className="text-sm text-slate">{t('settings', 'maintenanceModeDesc')}</p>
-                                </div>
-                                <button
-                                    onClick={() => setSettings({ ...settings, maintenanceMode: !settings.maintenanceMode })}
-                                    className={`relative w-14 h-8 rounded-full transition-colors ${settings.maintenanceMode ? 'bg-red-500' : 'bg-gray-300'
-                                        }`}
-                                >
-                                    <span
-                                        className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-transform ${settings.maintenanceMode ? 'left-7' : 'left-1'
-                                            }`}
-                                    />
-                                </button>
-                            </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
