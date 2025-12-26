@@ -1,361 +1,313 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
-    Plus,
-    Search,
-    Edit2,
-    Trash2,
-    Eye,
-    Newspaper,
-    X,
-    Save,
-    Lock,
-    Shield
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  Eye,
+  Newspaper,
+  X,
+  Save,
+  Lock,
+  Shield,
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
-import { adminNews as initialNews, Article } from '@/data/mockData';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+
+/* Article type (keep local, no mockData) */
+export interface Article {
+  id: number;
+  title: string;
+  excerpt: string;
+  content?: string;
+  category: string;
+  author: string;
+  image: string;
+  date: string;
+}
 
 const AdminNews = () => {
-    const { hasPermission } = useAdmin();
-    const { t, language } = useLanguage();
-    const [news, setNews] = useState<Article[]>(initialNews);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingNews, setEditingNews] = useState<Article | null>(null);
-    const [formData, setFormData] = useState({
-        title: '',
-        excerpt: '',
-        content: '',
-        category: 'أخبار الإدارة',
-        author: 'الإدارة',
-        image: ''
-    });
-    const { toast } = useToast();
+  const { hasPermission } = useAdmin();
+  const { t, language } = useLanguage();
+  const { toast } = useToast();
 
-    // Check if user can access news - only super_admin and editor
-    if (!hasPermission('canManageNews')) {
-        return (
-            <AdminLayout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="text-center">
-                        <Shield className="w-16 h-16 text-red-300 mx-auto mb-4" />
-                        <h2 className="text-xl font-bold text-charcoal mb-2">{t('messages', 'notAllowed')}</h2>
-                        <p className="text-slate">{t('users', 'editorPermissions')}</p>
-                    </div>
-                </div>
-            </AdminLayout>
+  const [news, setNews] = useState<Article[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingNews, setEditingNews] = useState<Article | null>(null);
+
+  const [formData, setFormData] = useState({
+    title: '',
+    excerpt: '',
+    content: '',
+    category: 'أخبار الإدارة',
+    author: 'الإدارة',
+    image: '',
+  });
+
+  /* FETCH NEWS FROM API */
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const allArticles = await api.articles.getAll();
+        const adminNews = allArticles.filter(
+          (a: Article) =>
+            a.category === 'أخبار الإدارة' ||
+            a.category === 'Administration News'
         );
-    }
-
-    const filteredNews = news.filter(item =>
-        item.title.includes(searchQuery) ||
-        item.content?.includes(searchQuery)
-    );
-
-    const openNewModal = () => {
-        if (!hasPermission('canCreate')) {
-            toast({
-                title: t('messages', 'notAllowed'),
-                description: t('messages', 'noAddPermission'),
-                variant: 'destructive'
-            });
-            return;
-        }
-        setEditingNews(null);
-        setFormData({
-            title: '',
-            excerpt: '',
-            content: '',
-            category: 'أخبار الإدارة',
-            author: 'الإدارة',
-            image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop'
+        setNews(adminNews);
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load news',
+          variant: 'destructive',
         });
-        setIsModalOpen(true);
+      }
     };
 
-    const openEditModal = (item: Article) => {
-        if (!hasPermission('canEdit')) {
-            toast({
-                title: t('messages', 'notAllowed'),
-                description: t('messages', 'noEditPermission'),
-                variant: 'destructive'
-            });
-            return;
-        }
-        setEditingNews(item);
-        setFormData({
-            title: item.title,
-            excerpt: item.excerpt,
-            content: item.content || '',
-            category: item.category,
-            author: item.author,
-            image: item.image
-        });
-        setIsModalOpen(true);
-    };
+    fetchNews();
+  }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (editingNews) {
-            setNews(news.map(n =>
-                n.id === editingNews.id
-                    ? { ...n, ...formData }
-                    : n
-            ));
-            toast({ title: t('messages', 'updated'), description: t('news', 'newsUpdated') });
-        } else {
-            const newNewsItem: Article = {
-                id: Math.max(...news.map(n => n.id)) + 1,
-                ...formData,
-                date: new Date().toLocaleDateString(language === 'ar' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })
-            };
-            setNews([newNewsItem, ...news]);
-            toast({ title: t('messages', 'added'), description: t('news', 'newsAdded') });
-        }
-
-        setIsModalOpen(false);
-    };
-
-    const handleDelete = (id: number) => {
-        if (!hasPermission('canDelete')) {
-            toast({
-                title: t('messages', 'notAllowed'),
-                description: t('messages', 'noDeletePermission'),
-                variant: 'destructive'
-            });
-            return;
-        }
-        if (confirm(t('news', 'confirmDelete'))) {
-            setNews(news.filter(n => n.id !== id));
-            toast({ title: t('messages', 'deleted'), description: t('news', 'newsDeleted') });
-        }
-    };
-
+  /* PERMISSION CHECK */
+  if (!hasPermission('canManageNews')) {
     return (
-        <AdminLayout>
-            <Helmet>
-                <title>{t('news', 'manageNews')} - {t('auth', 'controlPanel')}</title>
-            </Helmet>
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[60vh] text-center">
+          <Shield className="w-16 h-16 text-red-300 mx-auto mb-4" />
+          <h2 className="text-xl font-bold">{t('messages', 'notAllowed')}</h2>
+          <p className="text-slate">{t('users', 'editorPermissions')}</p>
+        </div>
+      </AdminLayout>
+    );
+  }
 
-            <div className="space-y-6">
-                {/* Enhanced Page Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-400/20 rounded-2xl">
-                                <Newspaper className="w-8 h-8 text-blue-600" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-charcoal">{t('news', 'manageNews')}</h1>
-                                <p className="text-slate mt-1.5">{t('news', 'addEditDeleteNews')}</p>
-                            </div>
-                        </div>
-                        {hasPermission('canCreate') ? (
-                            <button
-                                onClick={openNewModal}
-                                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all"
-                            >
-                                <Plus className="w-5 h-5" />
-                                {t('news', 'addNews')}
-                            </button>
-                        ) : (
-                            <div className="inline-flex items-center gap-2 bg-gray-100 text-slate px-6 py-3 rounded-xl font-medium">
-                                <Lock className="w-4 h-4" />
-                                {t('articles', 'viewOnlyMode')}
-                            </div>
-                        )}
-                    </div>
-                </div>
+  const filteredNews = news.filter(
+    (n) =>
+      n.title.includes(searchQuery) ||
+      n.content?.includes(searchQuery)
+  );
 
-                {/* Permission Notice for Viewers */}
-                {!hasPermission('canEdit') && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
-                        <Lock className="w-5 h-5 text-amber-600" />
-                        <p className="text-sm text-amber-800">
-                            {t('articles', 'viewOnlyNotice')}
-                        </p>
-                    </div>
-                )}
+  /* ADD / EDIT */
+  const openNewModal = () => {
+    if (!hasPermission('canCreate')) return;
+    setEditingNews(null);
+    setFormData({
+      title: '',
+      excerpt: '',
+      content: '',
+      category: 'أخبار الإدارة',
+      author: 'الإدارة',
+      image: '',
+    });
+    setIsModalOpen(true);
+  };
 
-                {/* Search */}
-                <div className="bg-white rounded-xl p-4 shadow-card border border-gray-100">
-                    <div className="relative">
-                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder={t('news', 'searchNews')}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pr-12 pl-4 py-3 rounded-xl border border-gray-200 bg-white text-charcoal placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-all"
-                        />
-                    </div>
-                </div>
+  const openEditModal = (item: Article) => {
+    if (!hasPermission('canEdit')) return;
+    setEditingNews(item);
+    setFormData({ ...item });
+    setIsModalOpen(true);
+  };
 
-                {/* Enhanced News Table */}
-                <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 border-b-2 border-gray-200">
-                                <tr>
-                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'image')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('news', 'newsTitle')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'author')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-bold text-charcoal uppercase tracking-wide">{t('articles', 'date')}</th>
-                                    <th className="text-start px-6 py-4 text-sm font-semibold text-charcoal">{t('articles', 'actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredNews.map((item) => (
-                                    <tr key={item.id} className="hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-blue-400/5 transition-all duration-200 group">
-                                        <td className="px-6 py-4">
-                                            <img
-                                                src={item.image}
-                                                alt={item.title}
-                                                className="w-16 h-12 object-cover rounded-lg"
-                                            />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="font-medium text-charcoal text-sm line-clamp-1 max-w-xs">{item.title}</p>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate">{item.author}</td>
-                                        <td className="px-6 py-4 text-sm text-slate">{item.date}</td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <a
-                                                    href={`/article/${item.id}`}
-                                                    target="_blank"
-                                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                                    title={t('common', 'view')}
-                                                >
-                                                    <Eye className="w-4 h-4 text-slate" />
-                                                </a>
-                                                {hasPermission('canEdit') && (
-                                                    <button
-                                                        onClick={() => openEditModal(item)}
-                                                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                                                        title={t('common', 'edit')}
-                                                    >
-                                                        <Edit2 className="w-4 h-4 text-blue-600" />
-                                                    </button>
-                                                )}
-                                                {hasPermission('canDelete') && (
-                                                    <button
-                                                        onClick={() => handleDelete(item.id)}
-                                                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title={t('common', 'delete')}
-                                                    >
-                                                        <Trash2 className="w-4 h-4 text-red-500" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+  /* SAVE */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-                    {filteredNews.length === 0 && (
-                        <div className="text-center py-12">
-                            <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                            <p className="text-slate">{t('news', 'noNews')}</p>
-                        </div>
-                    )}
-                </div>
+    try {
+      if (editingNews) {
+        await api.articles.update(editingNews.id, formData);
+        toast({ title: t('messages', 'updated') });
+      } else {
+        await api.articles.create({
+          ...formData,
+          date: new Date().toISOString(),
+        });
+        toast({ title: t('messages', 'added') });
+      }
+
+      const updated = await api.articles.getAll();
+      setNews(
+        updated.filter((a: Article) =>
+          a.category.includes('أخبار')
+        )
+      );
+
+      setIsModalOpen(false);
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: 'Operation failed',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  /* DELETE */
+  const handleDelete = async (id: number) => {
+    if (!hasPermission('canDelete')) return;
+    if (!confirm(t('news', 'confirmDelete'))) return;
+
+    try {
+      await api.articles.delete(id);
+      setNews(news.filter((n) => n.id !== id));
+      toast({ title: t('messages', 'deleted') });
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Delete failed',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <Helmet>
+        <title>{t('news', 'manageNews')}</title>
+      </Helmet>
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <Newspaper className="w-8 h-8 text-blue-600" />
+          {t('news', 'manageNews')}
+        </h1>
+
+        {hasPermission('canCreate') ? (
+          <button
+            onClick={openNewModal}
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2"
+          >
+            <Plus />
+            {t('news', 'addNews')}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 text-slate">
+            <Lock /> View only
+          </div>
+        )}
+      </div>
+
+      {/* SEARCH */}
+      <div className="mb-4 relative">
+        <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          className="w-full p-4 rounded-xl border"
+          placeholder={t('news', 'searchNews')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white rounded-xl overflow-hidden shadow">
+        <table className="w-full">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-4 text-start">{t('articles', 'image')}</th>
+              <th className="p-4 text-start">{t('news', 'newsTitle')}</th>
+              <th className="p-4">{t('articles', 'date')}</th>
+              <th className="p-4">{t('articles', 'actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredNews.map((item) => (
+              <tr key={item.id} className="border-t">
+                <td className="p-4">
+                  <img src={item.image} className="w-20 rounded" />
+                </td>
+                <td className="p-4 font-medium">{item.title}</td>
+                <td className="p-4">{item.date}</td>
+                <td className="p-4 flex gap-2">
+                  <a href={`/article/${item.id}`} target="_blank">
+                    <Eye />
+                  </a>
+                  {hasPermission('canEdit') && (
+                    <button onClick={() => openEditModal(item)}>
+                      <Edit2 />
+                    </button>
+                  )}
+                  {hasPermission('canDelete') && (
+                    <button onClick={() => handleDelete(item.id)}>
+                      <Trash2 className="text-red-500" />
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filteredNews.length === 0 && (
+          <p className="text-center py-10 text-slate">
+            {t('news', 'noNews')}
+          </p>
+        )}
+      </div>
+
+      {/* MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white p-6 rounded-xl w-full max-w-2xl space-y-4"
+          >
+            <div className="flex justify-between">
+              <h2 className="text-xl font-bold">
+                {editingNews ? t('news', 'editNews') : t('news', 'addNews')}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)}>
+                <X />
+              </button>
             </div>
 
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white p-6 border-b border-gray-100 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-charcoal">
-                                {editingNews ? t('news', 'editNews') : t('news', 'addNews')}
-                            </h2>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                <X className="w-5 h-5 text-slate" />
-                            </button>
-                        </div>
+            <input
+              required
+              className="w-full p-3 border rounded"
+              placeholder={t('news', 'newsTitle')}
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+            />
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'newsTitle')}</label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
-                                    required
-                                />
-                            </div>
+            <textarea
+              required
+              className="w-full p-3 border rounded"
+              placeholder={t('news', 'summary')}
+              value={formData.excerpt}
+              onChange={(e) =>
+                setFormData({ ...formData, excerpt: e.target.value })
+              }
+            />
 
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'imageUrl')}</label>
-                                <div className="flex gap-3">
-                                    <input
-                                        type="url"
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                        className="flex-1 p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
-                                        placeholder="https://..."
-                                    />
-                                    <div className="w-24 h-14 rounded-lg overflow-hidden border border-gray-200">
-                                        <img src={formData.image} alt="preview" className="w-full h-full object-cover" />
-                                    </div>
-                                </div>
-                            </div>
+            <textarea
+              className="w-full p-3 border rounded"
+              rows={5}
+              placeholder={t('news', 'details')}
+              value={formData.content}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
+            />
 
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'summary')}</label>
-                                <textarea
-                                    value={formData.excerpt}
-                                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                                    rows={2}
-                                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none resize-none"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'details')}</label>
-                                <textarea
-                                    value={formData.content}
-                                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                    rows={6}
-                                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none resize-none"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="submit"
-                                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Save className="w-5 h-5" />
-                                    {editingNews ? t('articles', 'saveChanges') : t('news', 'addNews')}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors"
-                                >
-                                    {t('common', 'cancel')}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </AdminLayout>
-    );
+            <button
+              type="submit"
+              className="bg-blue-600 text-white w-full py-3 rounded-xl flex items-center justify-center gap-2"
+            >
+              <Save />
+              {t('common', 'save')}
+            </button>
+          </form>
+        </div>
+      )}
+    </AdminLayout>
+  );
 };
 
 export default AdminNews;

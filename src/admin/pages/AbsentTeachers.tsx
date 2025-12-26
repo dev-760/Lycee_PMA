@@ -15,7 +15,7 @@ import {
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import AdminLayout from '@/admin/components/Layout';
-import { AbsentTeacher, getAbsentTeachers, saveAbsentTeachers } from '@/components/AbsentTeachers';
+import { api, AbsentTeacher } from '@/lib/api';
 
 /* 🔹 Helpers */
 const isWeekend = (date: string) => {
@@ -54,7 +54,7 @@ const AbsentTeachersAdmin = () => {
     note: ''
   });
 
-  const t = {
+  const translations = {
     en: {
       title: 'Manage Absent Teachers',
       search: 'Search...',
@@ -82,10 +82,13 @@ const AbsentTeachersAdmin = () => {
       weekendError: 'لا يمكن اختيار عطلة نهاية الأسبوع',
       dateError: 'تاريخ النهاية يجب أن يكون بعد أو يساوي تاريخ البداية'
     }
-  }[language] ?? t.en;
+  };
+
+  const t = translations[language as keyof typeof translations] ?? translations.en;
 
   useEffect(() => {
-    setTeachers(getAbsentTeachers());
+    /* Fetch from API */
+    api.absentTeachers.getAll().then(setTeachers).catch(console.error);
   }, []);
 
   const canEdit = hasPermission('canManageAnnouncements');
@@ -103,39 +106,54 @@ const AbsentTeachersAdmin = () => {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateDates()) return;
 
     const days = calculateDays(formData.dateFrom, formData.dateTo);
     const duration = formatDuration(days, language);
 
-    const dateFrom = new Date(formData.dateFrom).toLocaleDateString('fr-FR');
-    const dateTo = new Date(formData.dateTo).toLocaleDateString('fr-FR');
+    // Format for display/storage
+    const from = new Date(formData.dateFrom).toLocaleDateString('fr-FR');
+    const to = new Date(formData.dateTo).toLocaleDateString('fr-FR');
 
-    if (editingTeacher) {
-      const updated = teachers.map(t =>
-        t.id === editingTeacher.id
-          ? { ...t, ...formData, duration, dateFrom, dateTo }
-          : t
-      );
-      setTeachers(updated);
-      saveAbsentTeachers(updated);
-    } else {
-      const newTeacher: AbsentTeacher = {
-        id: Date.now().toString(),
-        ...formData,
-        duration,
-        dateFrom,
-        dateTo
-      };
-      const updated = [...teachers, newTeacher];
-      setTeachers(updated);
-      saveAbsentTeachers(updated);
+    try {
+      if (editingTeacher) {
+        await api.absentTeachers.update(editingTeacher.id, {
+          name: formData.name,
+          subject: formData.subject,
+          from,
+          to,
+          duration,
+          note: formData.note
+        });
+      } else {
+        await api.absentTeachers.create({
+          name: formData.name,
+          subject: formData.subject,
+          from,
+          to,
+          duration,
+          note: formData.note
+        });
+      }
+
+      // Refresh list
+      const data = await api.absentTeachers.getAll();
+      setTeachers(data);
+      setShowModal(false);
+      setEditingTeacher(null);
+      setFormData({
+        name: '',
+        subject: '',
+        dateFrom: new Date().toISOString().split('T')[0],
+        dateTo: new Date().toISOString().split('T')[0],
+        note: ''
+      });
+    } catch (e) {
+      console.error(e);
+      setError('Failed to save');
     }
-
-    setShowModal(false);
-    setEditingTeacher(null);
   };
 
   return (

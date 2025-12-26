@@ -1,10 +1,24 @@
-
-import { Article, Announcement } from '@/data/mockData';
+import { Article, Announcement } from '@/lib/api';
 import { getAuthenticatedClient } from '@/lib/supabase';
 import { getSession } from '@/lib/auth-storage';
 
 // Types for translation directions
 export type Language = 'ar' | 'en' | 'fr';
+
+// Extend base types to support translation fields locally
+interface TranslatableArticle extends Article {
+    title_en?: string;
+    title_fr?: string;
+    excerpt_en?: string;
+    excerpt_fr?: string;
+    content_en?: string;
+    content_fr?: string;
+}
+
+interface TranslatableAnnouncement extends Announcement {
+    title_en?: string;
+    title_fr?: string;
+}
 
 /**
  * Validated translation service using Edge Functions
@@ -41,13 +55,11 @@ const translateText = async (text: string, from: Language, to: Language): Promis
     }
 };
 
-export const translateArticle = async (article: Article, sourceLang: Language = 'ar'): Promise<Article> => {
-    const newArticle = { ...article };
+export const translateArticle = async (article: Article, sourceLang: Language = 'ar'): Promise<TranslatableArticle> => {
+    const newArticle = { ...article } as TranslatableArticle;
     const targets: Language[] = ['ar', 'en', 'fr'].filter(l => l !== sourceLang) as Language[];
 
     for (const target of targets) {
-        const targetTitleKey = target === 'ar' ? 'title' : `title_${target}` as keyof Article;
-
         if (target !== 'ar') { // Only auto-fill secondary languages for now
             const translatedTitle = await translateText(article.title, sourceLang, target);
             if (target === 'en') newArticle.title_en = translatedTitle;
@@ -72,8 +84,8 @@ export const translateArticle = async (article: Article, sourceLang: Language = 
     return newArticle;
 };
 
-export const translateAnnouncement = async (announcement: Announcement, sourceLang: Language = 'ar'): Promise<Announcement> => {
-    const newAnnouncement = { ...announcement };
+export const translateAnnouncement = async (announcement: Announcement, sourceLang: Language = 'ar'): Promise<TranslatableAnnouncement> => {
+    const newAnnouncement = { ...announcement } as TranslatableAnnouncement;
     const targets: Language[] = ['ar', 'en', 'fr'].filter(l => l !== sourceLang) as Language[];
 
     for (const target of targets) {

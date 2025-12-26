@@ -2,10 +2,18 @@ import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
-import { articles } from "@/data/mockData";
+
+type Article = {
+  id: string | number;
+  title: string;
+  category?: string;
+  description?: string;
+  image?: string;
+};
 
 const Creativity = () => {
-  const creativityArticles = articles.filter((a) => a.category === "إبداعات");
+  // ✅ No mock data – safe for deployment
+  const creativityArticles: Article[] = [];
 
   return (
     <>
@@ -15,16 +23,27 @@ const Creativity = () => {
 
       <div className="min-h-screen flex flex-col">
         <Header />
+
         <main className="flex-1 py-8">
           <div className="container">
-            <h1 className="text-3xl font-bold text-primary mb-8">إبداعات التلاميذ</h1>
+            <h1 className="text-3xl font-bold text-primary mb-8">
+              إبداعات التلاميذ
+            </h1>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {creativityArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
+              {creativityArticles.length > 0 ? (
+                creativityArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))
+              ) : (
+                <p className="text-center text-slate col-span-full">
+                  لا توجد إبداعات منشورة حالياً
+                </p>
+              )}
             </div>
           </div>
         </main>
+
         <Footer />
       </div>
     </>

@@ -1,6 +1,49 @@
 
 import { getAuthenticatedClient } from '@/lib/supabase';
-import { Article, Announcement, AdminUser } from '@/data/mockData';
+
+// Define types locally since mockData is missing
+export interface Article {
+    id: number;
+    title: string;
+    excerpt?: string; // Added to match usage
+    content?: string;
+    summary?: string;
+    image?: string;
+    date: string;
+    author?: string; // Added to match usage
+    category?: string;
+    is_published?: boolean;
+}
+
+export interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    date: string;
+    is_active?: boolean;
+}
+
+export interface AdminUser {
+    id: string;
+    email: string;
+    role?: string;
+}
+
+export interface CulturalFact {
+    id: number;
+    title: string;
+    content: string;
+}
+
+export interface AbsentTeacher {
+    id: number;
+    name: string;
+    subject: string;
+    from: string;
+    to: string;
+    duration: string;
+    note?: string;
+}
 
 // Articles API
 export const api = {
@@ -108,6 +151,59 @@ export const api = {
 
             if (error) throw error;
             return data;
+        }
+    },
+
+    absentTeachers: {
+        getAll: async () => {
+            const supabase = getAuthenticatedClient();
+            const { data, error } = await supabase
+                .from('absent_teachers')
+                .select('*')
+                .order('from', { ascending: false });
+
+            // If table doesn't exist yet, return empty array to prevent crash
+            if (error && error.code === '42P01') {
+                console.warn('absent_teachers table does not exist');
+                return [];
+            }
+            if (error) throw error;
+            return data as AbsentTeacher[];
+        },
+
+        create: async (teacher: Omit<AbsentTeacher, 'id'>) => {
+            const supabase = getAuthenticatedClient();
+            const { data, error } = await supabase
+                .from('absent_teachers')
+                .insert(teacher)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data as AbsentTeacher;
+        },
+
+        update: async (id: number, teacher: Partial<AbsentTeacher>) => {
+            const supabase = getAuthenticatedClient();
+            const { data, error } = await supabase
+                .from('absent_teachers')
+                .update(teacher)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data as AbsentTeacher;
+        },
+
+        delete: async (id: number) => {
+            const supabase = getAuthenticatedClient();
+            const { error } = await supabase
+                .from('absent_teachers')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
         }
     },
 
