@@ -1,10 +1,18 @@
+/**
+ * Absent Teachers Component
+ * 
+ * Displays absent teachers with multilingual support.
+ * Content is displayed in the user's selected language.
+ */
+
 import { useEffect, useState } from "react";
 import { Users, Check } from "lucide-react";
-import { api, AbsentTeacher } from "@/lib/api";
+import { api } from "@/lib/api";
+import { AbsentTeacher } from "@/types";
 import { useLanguage } from "@/i18n";
 
 const AbsentTeachers = () => {
-  const { language } = useLanguage();
+  const { language, getContentWithFallback } = useLanguage();
   const [teachers, setTeachers] = useState<AbsentTeacher[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,16 +20,23 @@ const AbsentTeachers = () => {
     ar: {
       title: "لائحة الأساتذة الغائبين",
       empty: "لا يوجد أساتذة غائبون حالياً",
+      allPresent: "جميع الأساتذة حاضرون اليوم",
     },
     en: {
       title: "Absent Teachers",
       empty: "No absent teachers",
+      allPresent: "All teachers are present today",
     },
     fr: {
       title: "Enseignants absents",
       empty: "Aucun enseignant absent",
+      allPresent: "Tous les enseignants sont présents aujourd'hui",
     },
-  }[language];
+  }[language] || {
+    title: "Absent Teachers",
+    empty: "No absent teachers",
+    allPresent: "All teachers are present today",
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -53,24 +68,30 @@ const AbsentTeachers = () => {
           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
             <Check className="w-6 h-6 text-green-500" />
           </div>
-          <p className="font-medium text-charcoal">
-            {language === "ar" ? "لا يوجد أساتذة غائبون حالياً" : text.empty}
-          </p>
-          <p className="text-xs text-slate mt-1 opacity-75">
-            {language === "ar" ? "جميع الأساتذة حاضرون اليوم" : "All teachers are present today"}
-          </p>
+          <p className="font-medium text-charcoal">{text.empty}</p>
+          <p className="text-xs text-slate mt-1 opacity-75">{text.allPresent}</p>
         </div>
       )}
 
-      {/* Render ONLY real data, filtering out specific test entries if present */}
-      {teachers
-        .filter((t) => !t.name.includes("محمد أحمد") && !t.name.includes("فاطمة علي"))
-        .map((t) => (
-          <div key={t.id} className="mt-4 bg-white rounded-xl p-4 shadow-sm">
-            <h4 className="font-bold text-charcoal">{t.name}</h4>
-            <p className="text-sm text-slate">{t.subject}</p>
-          </div>
-        ))}
+      {/* Render teachers with multilingual content */}
+      {teachers.map((t) => (
+        <div key={t.id} className="mt-4 bg-white rounded-xl p-4 shadow-sm">
+          {/* Display name in user's selected language */}
+          <h4 className="font-bold text-charcoal">
+            {getContentWithFallback(t.name_translations, t.name)}
+          </h4>
+          {/* Display subject in user's selected language */}
+          <p className="text-sm text-slate">
+            {getContentWithFallback(t.subject_translations, t.subject || '')}
+          </p>
+          {/* Display note if available */}
+          {(t.note_translations || t.note) && (
+            <p className="text-xs text-slate mt-2 italic">
+              {getContentWithFallback(t.note_translations, t.note || '')}
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

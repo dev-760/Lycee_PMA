@@ -1,7 +1,16 @@
+/**
+ * Admin Announcements Page
+ * 
+ * Example implementation of multilingual content management.
+ * - Admin writes content in one language (source_language)
+ * - Translations are generated automatically on create/update
+ * - Frontend displays content based on selected language
+ */
+
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { api } from '@/lib/api';
-import { Announcement } from '@/types';
+import { Announcement, Language, SUPPORTED_LANGUAGES, LANGUAGE_NAMES } from '@/types';
 import {
     Plus,
     Search,
@@ -16,7 +25,9 @@ import {
     Clock,
     Link as LinkIcon,
     FileText,
-    ExternalLink
+    ExternalLink,
+    Globe,
+    Loader2,
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import { useAdmin } from '@/admin/context/Context';
@@ -25,21 +36,24 @@ import { useToast } from '@/hooks/use-toast';
 
 const AdminAnnouncements = () => {
     const { hasPermission } = useAdmin();
-    const { t, language, isRTL } = useLanguage();
+    const { t, language, isRTL, getContent, getContentWithFallback } = useLanguage();
     const { toast } = useToast();
 
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
 
+    // Form data with source language selection
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         urgent: false,
         link_url: '',
-        link_text: ''
+        link_text: '',
+        source_language: 'ar' as Language,
     });
 
     // Fetch Announcements
@@ -53,7 +67,7 @@ const AdminAnnouncements = () => {
                 toast({
                     title: t('common', 'error'),
                     description: 'Failed to load announcements',
-                    variant: 'destructive'
+                    variant: 'destructive',
                 });
             } finally {
                 setLoading(false);
@@ -82,22 +96,35 @@ const AdminAnnouncements = () => {
         );
     }
 
-    const filteredAnnouncements = announcements.filter(a =>
-        a.title.includes(searchQuery)
-    );
+    // Filter announcements based on search (searches in current language)
+    const filteredAnnouncements = announcements.filter((a) => {
+        const title = getContentWithFallback(a.title_translations, a.title);
+        const description = getContentWithFallback(a.description_translations, a.description || '');
+        return (
+            title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    });
 
     const openNewModal = () => {
         if (!hasPermission('canCreate')) {
             toast({
                 title: t('messages', 'notAllowed'),
                 description: t('messages', 'noAddPermission'),
-                variant: 'destructive'
+                variant: 'destructive',
             });
             return;
         }
 
         setEditingAnnouncement(null);
-        setFormData({ title: '', description: '', urgent: false, link_url: '', link_text: '' });
+        setFormData({
+            title: '',
+            description: '',
+            urgent: false,
+            link_url: '',
+            link_text: '',
+            source_language: language, // Default to current UI language
+        });
         setIsModalOpen(true);
     };
 
@@ -106,51 +133,71 @@ const AdminAnnouncements = () => {
             toast({
                 title: t('messages', 'notAllowed'),
                 description: t('messages', 'noEditPermission'),
-                variant: 'destructive'
+                variant: 'destructive',
             });
             return;
         }
 
         setEditingAnnouncement(announcement);
+        // Load content in source language for editing
+        const sourceLang = announcement.source_language || 'ar';
         setFormData({
-            title: announcement.title,
-            description: announcement.description || '',
+            title: announcement.title_translations?.[sourceLang] || announcement.title,
+            description: announcement.description_translations?.[sourceLang] || announcement.description || '',
             urgent: announcement.urgent || false,
-            link_url: (announcement as any).link_url || '',
-            link_text: (announcement as any).link_text || ''
+            link_url: announcement.link_url || '',
+            link_text: announcement.link_text || '',
+            source_language: sourceLang,
         });
         setIsModalOpen(true);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSaving(true);
 
         try {
             if (editingAnnouncement) {
-                await api.announcements.update(editingAnnouncement.id, formData);
+                // Update with re-translation
+                const updated = await api.announcements.update(
+                    editingAnnouncement.id,
+                    {
+                        title: formData.title,
+                        description: formData.description,
+                        urgent: formData.urgent,
+                        link_url: formData.link_url,
+                        link_text: formData.link_text,
+                    },
+                    formData.source_language,
+                    true // retranslate
+                );
 
-                setAnnouncements(prev =>
-                    prev.map(a => a.id === editingAnnouncement.id ? { ...a, ...formData } : a)
+                setAnnouncements((prev) =>
+                    prev.map((a) => (a.id === editingAnnouncement.id ? updated : a))
                 );
 
                 toast({
                     title: t('messages', 'updated'),
-                    description: t('announcements', 'announcementUpdated')
+                    description: t('announcements', 'announcementUpdated'),
                 });
             } else {
-                const newAnnouncement = {
-                    ...formData,
-                    date: new Date().toISOString().split('T')[0]
-                };
+                // Create with automatic translation
+                const created = await api.announcements.create(
+                    {
+                        title: formData.title,
+                        description: formData.description,
+                        urgent: formData.urgent,
+                        link_url: formData.link_url,
+                        link_text: formData.link_text,
+                    },
+                    formData.source_language
+                );
 
-                const created = await api.announcements.create(newAnnouncement);
-                if (created) {
-                    setAnnouncements(prev => [created, ...prev]);
-                    toast({
-                        title: t('messages', 'added'),
-                        description: t('announcements', 'announcementAdded')
-                    });
-                }
+                setAnnouncements((prev) => [created, ...prev]);
+                toast({
+                    title: t('messages', 'added'),
+                    description: t('announcements', 'announcementAdded'),
+                });
             }
             setIsModalOpen(false);
         } catch (error) {
@@ -158,8 +205,10 @@ const AdminAnnouncements = () => {
             toast({
                 title: t('common', 'error'),
                 description: 'Operation failed',
-                variant: 'destructive'
+                variant: 'destructive',
             });
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -168,7 +217,7 @@ const AdminAnnouncements = () => {
             toast({
                 title: t('messages', 'notAllowed'),
                 description: t('messages', 'noDeletePermission'),
-                variant: 'destructive'
+                variant: 'destructive',
             });
             return;
         }
@@ -177,17 +226,17 @@ const AdminAnnouncements = () => {
 
         try {
             await api.announcements.delete(id);
-            setAnnouncements(prev => prev.filter(a => a.id !== id));
+            setAnnouncements((prev) => prev.filter((a) => a.id !== id));
             toast({
                 title: t('messages', 'deleted'),
-                description: t('announcements', 'announcementDeleted')
+                description: t('announcements', 'announcementDeleted'),
             });
         } catch (error) {
             console.error(error);
             toast({
                 title: t('common', 'error'),
                 description: 'Delete failed',
-                variant: 'destructive'
+                variant: 'destructive',
             });
         }
     };
@@ -197,55 +246,50 @@ const AdminAnnouncements = () => {
             toast({
                 title: t('messages', 'notAllowed'),
                 description: t('messages', 'noEditPermission'),
-                variant: 'destructive'
+                variant: 'destructive',
             });
             return;
         }
 
-        const announcement = announcements.find(a => a.id === id);
+        const announcement = announcements.find((a) => a.id === id);
         if (!announcement) return;
 
         try {
             const newState = !announcement.urgent;
-            await api.announcements.update(id, { urgent: newState });
-            setAnnouncements(prev =>
-                prev.map(a => a.id === id ? { ...a, urgent: newState } : a)
+            await api.announcements.update(
+                id,
+                { urgent: newState },
+                announcement.source_language,
+                false // Don't retranslate for simple toggle
+            );
+            setAnnouncements((prev) =>
+                prev.map((a) => (a.id === id ? { ...a, urgent: newState } : a))
             );
         } catch (error) {
             console.error(error);
             toast({
                 title: t('common', 'error'),
                 description: 'Update failed',
-                variant: 'destructive'
+                variant: 'destructive',
             });
         }
     };
 
-    const translations = {
-        ar: {
-            documentLink: 'رابط المستند',
-            linkUrl: 'رابط المستند (URL)',
-            linkText: 'نص الرابط',
-            linkPlaceholder: 'https://drive.google.com/...',
-            linkTextPlaceholder: 'اضغط لتحميل المستند'
-        },
-        fr: {
-            documentLink: 'Lien du document',
-            linkUrl: 'URL du document',
-            linkText: 'Texte du lien',
-            linkPlaceholder: 'https://drive.google.com/...',
-            linkTextPlaceholder: 'Cliquez pour télécharger le document'
-        },
-        en: {
-            documentLink: 'Document Link',
-            linkUrl: 'Document URL',
-            linkText: 'Link Text',
-            linkPlaceholder: 'https://drive.google.com/...',
-            linkTextPlaceholder: 'Click to download document'
-        }
+    // Local translations for form labels
+    const localT: Record<string, Record<Language, string>> = {
+        documentLink: { ar: 'رابط المستند', en: 'Document Link', fr: 'Lien du document' },
+        linkUrl: { ar: 'رابط المستند (URL)', en: 'Document URL', fr: 'URL du document' },
+        linkText: { ar: 'نص الرابط', en: 'Link Text', fr: 'Texte du lien' },
+        linkPlaceholder: { ar: 'https://drive.google.com/...', en: 'https://drive.google.com/...', fr: 'https://drive.google.com/...' },
+        linkTextPlaceholder: { ar: 'اضغط لتحميل المستند', en: 'Click to download document', fr: 'Cliquez pour télécharger le document' },
+        writeIn: { ar: 'كتابة المحتوى بـ', en: 'Write content in', fr: 'Écrire le contenu en' },
+        autoTranslate: { ar: 'سيتم الترجمة تلقائياً', en: 'Will be translated automatically', fr: 'Sera traduit automatiquement' },
+        translating: { ar: 'جاري الحفظ والترجمة...', en: 'Saving and translating...', fr: 'Enregistrement et traduction...' },
+        descriptionLabel: { ar: 'الوصف (اختياري)', en: 'Description (optional)', fr: 'Description (optionnel)' },
+        descriptionPlaceholder: { ar: 'أضف وصفاً للإعلان (اختياري)', en: 'Add a description (optional)', fr: 'Ajouter une description (optionnel)' },
     };
 
-    const localT = translations[language as keyof typeof translations] || translations.en;
+    const getLocal = (key: string) => localT[key]?.[language] || localT[key]?.en || key;
 
     return (
         <AdminLayout>
@@ -289,90 +333,112 @@ const AdminAnnouncements = () => {
 
             {/* Announcements List */}
             <div className="space-y-4">
-                {filteredAnnouncements.map((announcement) => (
-                    <div
-                        key={announcement.id}
-                        className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex items-start gap-5 hover:shadow-xl hover:border-gold/30 transition-all duration-300"
-                    >
-                        <div className={`p-3.5 rounded-xl flex-shrink-0 ${announcement.urgent
-                            ? 'bg-gradient-to-br from-red-500 to-red-600 text-white'
-                            : 'bg-gold/10 text-gold'
-                            }`}>
-                            <Bell className="w-5 h-5" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center flex-wrap gap-2 mb-2">
-                                {announcement.urgent && (
-                                    <span className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-md animate-pulse">
-                                        <Sparkles className="w-3 h-3" />
-                                        {t('announcements', 'important')}
-                                    </span>
-                                )}
-                                <h3 className="font-bold text-charcoal text-lg">{announcement.title}</h3>
-                            </div>
-
-                            {announcement.description && (
-                                <p className="text-sm text-slate mb-2 line-clamp-2">{announcement.description}</p>
-                            )}
-
-                            {/* Document Link */}
-                            {(announcement as any).link_url && (
-                                <a
-                                    href={(announcement as any).link_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-sm text-teal hover:text-gold transition-colors mb-2"
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    {(announcement as any).link_text || localT.documentLink}
-                                    <ExternalLink className="w-3 h-3" />
-                                </a>
-                            )}
-
-                            <p className="text-xs text-slate flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {announcement.date}
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            {hasPermission('canEdit') && (
-                                <>
-                                    <button
-                                        onClick={() => toggleUrgent(announcement.id)}
-                                        className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${announcement.urgent
-                                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                                            : 'bg-gray-100 text-slate hover:bg-gray-200'
-                                            }`}
-                                    >
-                                        {announcement.urgent ? t('announcements', 'removeImportance') : t('announcements', 'setAsImportant')}
-                                    </button>
-                                    <button
-                                        onClick={() => openEditModal(announcement)}
-                                        className="p-2 hover:bg-gold/10 rounded-lg transition-colors"
-                                    >
-                                        <Edit2 className="w-4 h-4 text-gold" />
-                                    </button>
-                                </>
-                            )}
-                            {hasPermission('canDelete') && (
-                                <button
-                                    onClick={() => handleDelete(announcement.id)}
-                                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                >
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                </button>
-                            )}
-                        </div>
+                {loading ? (
+                    <div className="bg-white rounded-2xl p-12 shadow-card border border-gray-100 text-center">
+                        <Loader2 className="w-8 h-8 text-gold mx-auto mb-4 animate-spin" />
+                        <p className="text-slate">Loading...</p>
                     </div>
-                ))}
-
-                {filteredAnnouncements.length === 0 && (
+                ) : filteredAnnouncements.length === 0 ? (
                     <div className="bg-white rounded-2xl p-12 shadow-card border border-gray-100 text-center">
                         <Bell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-slate">{t('announcements', 'noAnnouncements')}</p>
                     </div>
+                ) : (
+                    filteredAnnouncements.map((announcement) => (
+                        <div
+                            key={announcement.id}
+                            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex items-start gap-5 hover:shadow-xl hover:border-gold/30 transition-all duration-300"
+                        >
+                            <div
+                                className={`p-3.5 rounded-xl flex-shrink-0 ${announcement.urgent
+                                        ? 'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                                        : 'bg-gold/10 text-gold'
+                                    }`}
+                            >
+                                <Bell className="w-5 h-5" />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center flex-wrap gap-2 mb-2">
+                                    {announcement.urgent && (
+                                        <span className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-md animate-pulse">
+                                            <Sparkles className="w-3 h-3" />
+                                            {t('announcements', 'important')}
+                                        </span>
+                                    )}
+                                    {/* Display title in current language */}
+                                    <h3 className="font-bold text-charcoal text-lg">
+                                        {getContentWithFallback(announcement.title_translations, announcement.title)}
+                                    </h3>
+                                </div>
+
+                                {/* Display description in current language */}
+                                {(announcement.description_translations || announcement.description) && (
+                                    <p className="text-sm text-slate mb-2 line-clamp-2">
+                                        {getContentWithFallback(announcement.description_translations, announcement.description || '')}
+                                    </p>
+                                )}
+
+                                {/* Document Link */}
+                                {announcement.link_url && (
+                                    <a
+                                        href={announcement.link_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-sm text-teal hover:text-gold transition-colors mb-2"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        {announcement.link_text || getLocal('documentLink')}
+                                        <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                )}
+
+                                <div className="flex items-center gap-3 text-xs text-slate">
+                                    <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {announcement.date}
+                                    </span>
+                                    {/* Show source language indicator */}
+                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded">
+                                        <Globe className="w-3 h-3" />
+                                        {LANGUAGE_NAMES[announcement.source_language]}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                                {hasPermission('canEdit') && (
+                                    <>
+                                        <button
+                                            onClick={() => toggleUrgent(announcement.id)}
+                                            className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${announcement.urgent
+                                                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                    : 'bg-gray-100 text-slate hover:bg-gray-200'
+                                                }`}
+                                        >
+                                            {announcement.urgent
+                                                ? t('announcements', 'removeImportance')
+                                                : t('announcements', 'setAsImportant')}
+                                        </button>
+                                        <button
+                                            onClick={() => openEditModal(announcement)}
+                                            className="p-2 hover:bg-gold/10 rounded-lg transition-colors"
+                                        >
+                                            <Edit2 className="w-4 h-4 text-gold" />
+                                        </button>
+                                    </>
+                                )}
+                                {hasPermission('canDelete') && (
+                                    <button
+                                        onClick={() => handleDelete(announcement.id)}
+                                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))
                 )}
             </div>
 
@@ -385,7 +451,9 @@ const AdminAnnouncements = () => {
                     >
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-bold text-charcoal">
-                                {editingAnnouncement ? t('announcements', 'editAnnouncement') : t('announcements', 'addAnnouncement')}
+                                {editingAnnouncement
+                                    ? t('announcements', 'editAnnouncement')
+                                    : t('announcements', 'addAnnouncement')}
                             </h2>
                             <button
                                 type="button"
@@ -396,8 +464,38 @@ const AdminAnnouncements = () => {
                             </button>
                         </div>
 
+                        {/* Source Language Selection */}
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Globe className="w-5 h-5 text-blue-600" />
+                                <span className="font-medium text-charcoal">{getLocal('writeIn')}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                {SUPPORTED_LANGUAGES.map((lang) => (
+                                    <button
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, source_language: lang })}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-all ${formData.source_language === lang
+                                                ? 'bg-blue-600 text-white shadow-md'
+                                                : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
+                                            }`}
+                                    >
+                                        {LANGUAGE_NAMES[lang]}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-xs text-slate mt-2 flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" />
+                                {getLocal('autoTranslate')}
+                            </p>
+                        </div>
+
+                        {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-charcoal mb-2">{t('announcements', 'announcementText')}</label>
+                            <label className="block text-sm font-medium text-charcoal mb-2">
+                                {t('announcements', 'announcementText')}
+                            </label>
                             <input
                                 type="text"
                                 value={formData.title}
@@ -405,19 +503,22 @@ const AdminAnnouncements = () => {
                                 className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none"
                                 placeholder={t('announcements', 'announcementText')}
                                 required
+                                dir={formData.source_language === 'ar' ? 'rtl' : 'ltr'}
                             />
                         </div>
 
+                        {/* Description */}
                         <div>
                             <label className="block text-sm font-medium text-charcoal mb-2">
-                                {language === 'ar' ? 'الوصف (اختياري)' : language === 'fr' ? 'Description (optionnel)' : 'Description (optional)'}
+                                {getLocal('descriptionLabel')}
                             </label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none resize-none"
-                                placeholder={language === 'ar' ? 'أضف وصفاً للإعلان (اختياري)' : language === 'fr' ? 'Ajouter une description (optionnel)' : 'Add a description (optional)'}
+                                placeholder={getLocal('descriptionPlaceholder')}
                                 rows={4}
+                                dir={formData.source_language === 'ar' ? 'rtl' : 'ltr'}
                             />
                         </div>
 
@@ -425,30 +526,31 @@ const AdminAnnouncements = () => {
                         <div className="bg-gray-50 p-4 rounded-xl space-y-3">
                             <div className="flex items-center gap-2 text-charcoal font-medium">
                                 <LinkIcon className="w-4 h-4" />
-                                {localT.documentLink}
+                                {getLocal('documentLink')}
                             </div>
                             <div>
-                                <label className="block text-sm text-slate mb-1">{localT.linkUrl}</label>
+                                <label className="block text-sm text-slate mb-1">{getLocal('linkUrl')}</label>
                                 <input
                                     type="url"
                                     value={formData.link_url}
                                     onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none text-sm"
-                                    placeholder={localT.linkPlaceholder}
+                                    placeholder={getLocal('linkPlaceholder')}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-slate mb-1">{localT.linkText}</label>
+                                <label className="block text-sm text-slate mb-1">{getLocal('linkText')}</label>
                                 <input
                                     type="text"
                                     value={formData.link_text}
                                     onChange={(e) => setFormData({ ...formData, link_text: e.target.value })}
                                     className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none text-sm"
-                                    placeholder={localT.linkTextPlaceholder}
+                                    placeholder={getLocal('linkTextPlaceholder')}
                                 />
                             </div>
                         </div>
 
+                        {/* Urgent Toggle */}
                         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                             <input
                                 type="checkbox"
@@ -463,18 +565,32 @@ const AdminAnnouncements = () => {
                             </label>
                         </div>
 
+                        {/* Submit Buttons */}
                         <div className="flex gap-3 pt-4">
                             <button
                                 type="submit"
-                                className="flex-1 bg-gradient-to-r from-gold to-gold-light text-charcoal py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                                disabled={saving}
+                                className="flex-1 bg-gradient-to-r from-gold to-gold-light text-charcoal py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                <Save className="w-5 h-5" />
-                                {editingAnnouncement ? t('articles', 'saveChanges') : t('announcements', 'addAnnouncement')}
+                                {saving ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        {getLocal('translating')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-5 h-5" />
+                                        {editingAnnouncement
+                                            ? t('articles', 'saveChanges')
+                                            : t('announcements', 'addAnnouncement')}
+                                    </>
+                                )}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsModalOpen(false)}
-                                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors"
+                                disabled={saving}
+                                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
                                 {t('common', 'cancel')}
                             </button>

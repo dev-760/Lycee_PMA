@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { AbsentTeacher } from '@/components/AbsentTeachers';
+import { AbsentTeacher } from '@/types';
 import {
   Users,
   Plus,
