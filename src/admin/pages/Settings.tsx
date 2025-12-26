@@ -34,10 +34,8 @@ interface SiteSettings {
     twitter: string;
     instagram: string;
     youtube: string;
-    primaryColor: string;
     enableEmailNotifications: boolean;
     allowComments: boolean;
-    maintenanceMode: boolean;
 }
 
 const defaultSettings: SiteSettings = {
@@ -51,10 +49,8 @@ const defaultSettings: SiteSettings = {
     twitter: 'https://twitter.com/',
     instagram: 'https://instagram.com/',
     youtube: 'https://youtube.com/',
-    primaryColor: '#0d9488',
     enableEmailNotifications: true,
     allowComments: true,
-    maintenanceMode: false,
 };
 
 const AdminSettings = () => {
