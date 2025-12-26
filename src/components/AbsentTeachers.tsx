@@ -1,8 +1,25 @@
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { Users, Check } from "lucide-react";
 import { api, AbsentTeacher } from "@/lib/api";
 import { useLanguage } from "@/i18n";
 
+=======
+import { Users } from "lucide-react";
+import { api } from "@/lib/api";
+import { useLanguage } from "@/i18n";
+
+interface AbsentTeacher {
+  id: number;
+  name: string;
+  subject: string;
+  from: string;
+  to: string;
+  duration: string;
+  note?: string;
+}
+
+>>>>>>> 730d80ec287e5a7313f464cb76c3db6a8f258756
 const AbsentTeachers = () => {
   const { language } = useLanguage();
   const [teachers, setTeachers] = useState<AbsentTeacher[]>([]);
@@ -51,6 +68,7 @@ const AbsentTeachers = () => {
       </div>
 
       {!loading && teachers.length === 0 && (
+<<<<<<< HEAD
         <div className="flex flex-col items-center justify-center py-8 text-center animate-fade-in">
           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
             <Check className="w-6 h-6 text-green-500" />
@@ -73,6 +91,20 @@ const AbsentTeachers = () => {
             <p className="text-sm text-slate">{t.subject}</p>
           </div>
         ))}
+=======
+        <p className="text-sm text-slate mt-4">
+          {text.empty}
+        </p>
+      )}
+
+      {/* Render ONLY real data */}
+      {teachers.map((t) => (
+        <div key={t.id} className="mt-4 bg-white rounded-xl p-4 shadow-sm">
+          <h4 className="font-bold text-charcoal">{t.name}</h4>
+          <p className="text-sm text-slate">{t.subject}</p>
+        </div>
+      ))}
+>>>>>>> 730d80ec287e5a7313f464cb76c3db6a8f258756
     </div>
   );
 };
