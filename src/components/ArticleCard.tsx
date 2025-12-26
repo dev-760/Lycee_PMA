@@ -1,6 +1,6 @@
 import { Calendar, User, ArrowLeft, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Article } from "@/data/mockData";
+import type { Article } from "@/lib/api";
 
 interface ArticleCardProps {
   article: Article;

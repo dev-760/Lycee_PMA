@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { AbsentTeacher as AbsentTeacherType } from '@/components/AbsentTeachers';
+import { AbsentTeacher } from '@/components/AbsentTeachers';
 import {
   Users,
   Plus,
@@ -12,14 +12,15 @@ import {
   AlertCircle,
   BookOpen,
   X,
-  Check
+  Check,
+  Shield
 } from 'lucide-react';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
+import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/admin/components/Layout';
-import { AbsentTeacher, getAbsentTeachers, saveAbsentTeachers } from '@/components/AbsentTeachers';
 
-/* 🔹 Helpers */
+/* Helpers */
 const isWeekend = (date: string) => {
   const d = new Date(date).getDay();
   return d === 0 || d === 6;
@@ -40,8 +41,10 @@ const formatDuration = (days: number, lang: string) => {
 
 const AbsentTeachersAdmin = () => {
   const { hasPermission } = useAdmin();
-  const { language, isRTL } = useLanguage();
-  const [teachers, setTeachers] = useState<AbsentTeacherType[]>([]);
+  const { language, isRTL, t: tGlobal } = useLanguage();
+  const { toast } = useToast();
+
+  const [teachers, setTeachers] = useState<AbsentTeacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -60,12 +63,23 @@ const AbsentTeachersAdmin = () => {
   const translations = {
     en: {
       title: 'Manage Absent Teachers',
-      search: 'Search...',
+      search: 'Search teachers...',
       add: 'Add Teacher',
       save: 'Save',
       cancel: 'Cancel',
+      name: 'Teacher Name',
+      subject: 'Subject',
+      from: 'From',
+      to: 'To',
+      duration: 'Duration',
+      note: 'Note',
+      noTeachers: 'No absent teachers found',
       weekendError: 'Weekends are not allowed',
-      dateError: 'End date must be after or equal to start date'
+      dateError: 'End date must be after or equal to start date',
+      deleteConfirm: 'Are you sure you want to delete this entry?',
+      deleted: 'Teacher removed',
+      saved: 'Teacher saved',
+      notAllowed: 'Access Denied'
     },
     fr: {
       title: 'Gérer les Enseignants Absents',
@@ -73,37 +87,85 @@ const AbsentTeachersAdmin = () => {
       add: 'Ajouter',
       save: 'Enregistrer',
       cancel: 'Annuler',
+      name: 'Nom de l\'enseignant',
+      subject: 'Matière',
+      from: 'Du',
+      to: 'Au',
+      duration: 'Durée',
+      note: 'Note',
+      noTeachers: 'Aucun enseignant absent trouvé',
       weekendError: 'Les week-ends ne sont pas autorisés',
-      dateError: 'La date de fin doit être après la date de début'
+      dateError: 'La date de fin doit être après la date de début',
+      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cette entrée?',
+      deleted: 'Enseignant supprimé',
+      saved: 'Enseignant enregistré',
+      notAllowed: 'Accès refusé'
     },
     ar: {
       title: 'إدارة الأساتذة الغائبين',
       search: 'بحث...',
-      add: 'إضافة',
+      add: 'إضافة أستاذ',
       save: 'حفظ',
       cancel: 'إلغاء',
+      name: 'اسم الأستاذ',
+      subject: 'المادة',
+      from: 'من',
+      to: 'إلى',
+      duration: 'المدة',
+      note: 'ملاحظة',
+      noTeachers: 'لا يوجد أساتذة غائبين',
       weekendError: 'لا يمكن اختيار عطلة نهاية الأسبوع',
-      dateError: 'تاريخ النهاية يجب أن يكون بعد أو يساوي تاريخ البداية'
+      dateError: 'تاريخ النهاية يجب أن يكون بعد أو يساوي تاريخ البداية',
+      deleteConfirm: 'هل أنت متأكد من حذف هذا السجل؟',
+      deleted: 'تم حذف الأستاذ',
+      saved: 'تم حفظ الأستاذ',
+      notAllowed: 'غير مسموح'
     }
   };
 
   const t = translations[language as keyof typeof translations] ?? translations.en;
 
+  // Fetch teachers
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         const data = await api.absentTeachers.getAll();
-        if (data) setTeachers(data);
+        setTeachers(data || []);
       } catch (e) {
         console.error("Failed to load absent teachers", e);
+        toast({
+          title: 'Error',
+          description: 'Failed to load absent teachers',
+          variant: 'destructive'
+        });
       } finally {
         setLoading(false);
       }
     };
+
     fetchTeachers();
   }, []);
 
+  // Permission check - uses canManageAnnouncements since absent teachers is an admin function
   const canEdit = hasPermission('canManageAnnouncements');
+
+  if (!canEdit) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Shield className="w-16 h-16 text-red-300 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-charcoal mb-2">{t.notAllowed}</h2>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const filteredTeachers = teachers.filter(teacher =>
+    teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    teacher.subject?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const validateDates = () => {
     if (formData.dateTo < formData.dateFrom) {
@@ -118,6 +180,32 @@ const AbsentTeachersAdmin = () => {
     return true;
   };
 
+  const openNewModal = () => {
+    setEditingTeacher(null);
+    setFormData({
+      name: '',
+      subject: '',
+      dateFrom: new Date().toISOString().split('T')[0],
+      dateTo: new Date().toISOString().split('T')[0],
+      note: ''
+    });
+    setError('');
+    setShowModal(true);
+  };
+
+  const openEditModal = (teacher: AbsentTeacher) => {
+    setEditingTeacher(teacher);
+    setFormData({
+      name: teacher.name,
+      subject: teacher.subject || '',
+      dateFrom: teacher.dateFrom,
+      dateTo: teacher.dateTo,
+      note: teacher.note || ''
+    });
+    setError('');
+    setShowModal(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateDates()) return;
@@ -125,33 +213,24 @@ const AbsentTeachersAdmin = () => {
     const days = calculateDays(formData.dateFrom, formData.dateTo);
     const duration = formatDuration(days, language);
 
-    // formatted strings for French display, but we should store raw dates in DB if possible, 
-    // but the component interface says dateFrom dateTo are strings. 
-    // The API expects YYYY-MM-DD
-    const dateFrom = formData.dateFrom;
-    const dateTo = formData.dateTo;
-
     try {
       if (editingTeacher) {
-        const updatePayload = {
+        const updated = await api.absentTeachers.update(editingTeacher.id, {
           ...formData,
           duration
-        };
-        const updatedTeacher = await api.absentTeachers.update(editingTeacher.id, updatePayload);
-        const updated = teachers.map(t =>
-          t.id === editingTeacher.id
-            ? updatedTeacher
-            : t
-        );
-        setTeachers(updated);
+        });
+
+        setTeachers(prev => prev.map(t => t.id === editingTeacher.id ? updated : t));
       } else {
-        const newTeacherData = {
+        const created = await api.absentTeachers.create({
           ...formData,
           duration
-        };
-        const newTeacher = await api.absentTeachers.create(newTeacherData);
-        setTeachers([...teachers, newTeacher]);
+        });
+
+        setTeachers(prev => [...prev, created]);
       }
+
+      toast({ title: t.saved });
       setShowModal(false);
       setEditingTeacher(null);
     } catch (err) {
@@ -160,83 +239,214 @@ const AbsentTeachersAdmin = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm(t.deleteConfirm)) return;
+
+    try {
+      await api.absentTeachers.delete(id);
+      setTeachers(prev => prev.filter(t => t.id !== id));
+      toast({ title: t.deleted });
+    } catch (err) {
+      console.error("Error deleting teacher", err);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return (
     <AdminLayout>
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">{t.title}</h1>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Users className="w-8 h-8 text-red-500" />
+            {t.title}
+          </h1>
 
-        <input
-          placeholder={t.search}
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="w-full p-3 border rounded-xl"
-        />
-
-        {canEdit && (
           <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-red-500 text-white rounded-xl"
+            onClick={openNewModal}
+            className="bg-red-500 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-red-600 transition-colors"
           >
-            <Plus className="inline w-4 h-4 mr-2" />
+            <Plus className="w-5 h-5" />
             {t.add}
           </button>
-        )}
+        </div>
 
-        {showModal && (
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl space-y-4 max-w-md">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            placeholder={t.search}
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full p-4 pr-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500/30 focus:border-red-500 outline-none"
+          />
+        </div>
+
+        {/* Teachers List */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="p-4 text-start font-semibold text-charcoal">{t.name}</th>
+                <th className="p-4 text-start font-semibold text-charcoal">{t.subject}</th>
+                <th className="p-4 text-start font-semibold text-charcoal">{t.from}</th>
+                <th className="p-4 text-start font-semibold text-charcoal">{t.to}</th>
+                <th className="p-4 text-start font-semibold text-charcoal">{t.duration}</th>
+                <th className="p-4 text-start font-semibold text-charcoal"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredTeachers.map((teacher) => (
+                <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="p-4 font-medium text-charcoal">{teacher.name}</td>
+                  <td className="p-4 text-slate">{teacher.subject}</td>
+                  <td className="p-4 text-slate">{teacher.dateFrom}</td>
+                  <td className="p-4 text-slate">{teacher.dateTo}</td>
+                  <td className="p-4">
+                    <span className="px-3 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full">
+                      {teacher.duration}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEditModal(teacher)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <Pencil className="w-4 h-4 text-slate" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(teacher.id)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {filteredTeachers.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-slate">{t.noTeachers}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white p-6 rounded-2xl w-full max-w-lg space-y-5"
+          >
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-charcoal">
+                {editingTeacher ? 'Edit Teacher' : t.add}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-slate" />
+              </button>
+            </div>
+
             {error && (
-              <div className="text-red-600 bg-red-50 p-2 rounded-xl text-sm">
+              <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-xl text-sm">
+                <AlertCircle className="w-4 h-4" />
                 {error}
               </div>
             )}
 
-            <input
-              required
-              value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Name"
-              className="w-full p-3 border rounded-xl"
-            />
-
-            <input
-              type="date"
-              required
-              value={formData.dateFrom}
-              onChange={e => setFormData({ ...formData, dateFrom: e.target.value })}
-              className="w-full p-3 border rounded-xl"
-            />
-
-            <input
-              type="date"
-              required
-              value={formData.dateTo}
-              min={formData.dateFrom}
-              onChange={e => setFormData({ ...formData, dateTo: e.target.value })}
-              className="w-full p-3 border rounded-xl"
-            />
-
-            <div className="text-sm bg-gray-100 p-3 rounded-xl">
-              {formatDuration(
-                calculateDays(formData.dateFrom, formData.dateTo),
-                language
-              )}
+            <div>
+              <label className="block text-sm font-medium text-charcoal mb-2">{t.name}</label>
+              <input
+                required
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500/30 focus:border-red-500 outline-none"
+              />
             </div>
 
-            <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-red-500 text-white py-2 rounded-xl">
+            <div>
+              <label className="block text-sm font-medium text-charcoal mb-2">{t.subject}</label>
+              <input
+                value={formData.subject}
+                onChange={e => setFormData({ ...formData, subject: e.target.value })}
+                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500/30 focus:border-red-500 outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-charcoal mb-2">{t.from}</label>
+                <input
+                  type="date"
+                  required
+                  value={formData.dateFrom}
+                  onChange={e => setFormData({ ...formData, dateFrom: e.target.value })}
+                  className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500/30 focus:border-red-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-charcoal mb-2">{t.to}</label>
+                <input
+                  type="date"
+                  required
+                  value={formData.dateTo}
+                  min={formData.dateFrom}
+                  onChange={e => setFormData({ ...formData, dateTo: e.target.value })}
+                  className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500/30 focus:border-red-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-xl text-center">
+              <span className="text-sm text-slate">{t.duration}: </span>
+              <span className="font-bold text-red-600">
+                {formatDuration(calculateDays(formData.dateFrom, formData.dateTo), language)}
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-charcoal mb-2">{t.note}</label>
+              <textarea
+                value={formData.note}
+                onChange={e => setFormData({ ...formData, note: e.target.value })}
+                rows={3}
+                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500/30 focus:border-red-500 outline-none resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="submit"
+                className="flex-1 bg-red-500 text-white py-4 rounded-xl font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Check className="w-5 h-5" />
                 {t.save}
               </button>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="flex-1 bg-gray-200 py-2 rounded-xl"
+                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors"
               >
                 {t.cancel}
               </button>
             </div>
           </form>
-        )}
-      </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };
