@@ -13,7 +13,10 @@ import {
     Sparkles,
     Lock,
     Shield,
-    Clock
+    Clock,
+    Link as LinkIcon,
+    FileText,
+    ExternalLink
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import { useAdmin } from '@/admin/context/Context';
@@ -22,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const AdminAnnouncements = () => {
     const { hasPermission } = useAdmin();
-    const { t, language } = useLanguage();
+    const { t, language, isRTL } = useLanguage();
     const { toast } = useToast();
 
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -34,7 +37,9 @@ const AdminAnnouncements = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        urgent: false
+        urgent: false,
+        link_url: '',
+        link_text: ''
     });
 
     // Fetch Announcements
@@ -92,7 +97,7 @@ const AdminAnnouncements = () => {
         }
 
         setEditingAnnouncement(null);
-        setFormData({ title: '', description: '', urgent: false });
+        setFormData({ title: '', description: '', urgent: false, link_url: '', link_text: '' });
         setIsModalOpen(true);
     };
 
@@ -110,7 +115,9 @@ const AdminAnnouncements = () => {
         setFormData({
             title: announcement.title,
             description: announcement.description || '',
-            urgent: announcement.urgent || false
+            urgent: announcement.urgent || false,
+            link_url: (announcement as any).link_url || '',
+            link_text: (announcement as any).link_text || ''
         });
         setIsModalOpen(true);
     };
@@ -214,6 +221,32 @@ const AdminAnnouncements = () => {
         }
     };
 
+    const translations = {
+        ar: {
+            documentLink: 'رابط المستند',
+            linkUrl: 'رابط المستند (URL)',
+            linkText: 'نص الرابط',
+            linkPlaceholder: 'https://drive.google.com/...',
+            linkTextPlaceholder: 'اضغط لتحميل المستند'
+        },
+        fr: {
+            documentLink: 'Lien du document',
+            linkUrl: 'URL du document',
+            linkText: 'Texte du lien',
+            linkPlaceholder: 'https://drive.google.com/...',
+            linkTextPlaceholder: 'Cliquez pour télécharger le document'
+        },
+        en: {
+            documentLink: 'Document Link',
+            linkUrl: 'Document URL',
+            linkText: 'Link Text',
+            linkPlaceholder: 'https://drive.google.com/...',
+            linkTextPlaceholder: 'Click to download document'
+        }
+    };
+
+    const localT = translations[language as keyof typeof translations] || translations.en;
+
     return (
         <AdminLayout>
             <Helmet>
@@ -245,9 +278,9 @@ const AdminAnnouncements = () => {
 
             {/* Search */}
             <div className="mb-6 relative">
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5`} />
                 <input
-                    className="w-full p-4 pr-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none"
+                    className={`w-full p-4 ${isRTL ? 'pl-12' : 'pr-12'} rounded-xl border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none`}
                     placeholder={t('announcements', 'searchAnnouncements')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -259,17 +292,17 @@ const AdminAnnouncements = () => {
                 {filteredAnnouncements.map((announcement) => (
                     <div
                         key={announcement.id}
-                        className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex items-center gap-5 hover:shadow-xl hover:border-gold/30 transition-all duration-300"
+                        className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex items-start gap-5 hover:shadow-xl hover:border-gold/30 transition-all duration-300"
                     >
-                        <div className={`p-3.5 rounded-xl ${announcement.urgent
+                        <div className={`p-3.5 rounded-xl flex-shrink-0 ${announcement.urgent
                             ? 'bg-gradient-to-br from-red-500 to-red-600 text-white'
                             : 'bg-gold/10 text-gold'
                             }`}>
                             <Bell className="w-5 h-5" />
                         </div>
 
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center flex-wrap gap-2 mb-2">
                                 {announcement.urgent && (
                                     <span className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-md animate-pulse">
                                         <Sparkles className="w-3 h-3" />
@@ -278,16 +311,32 @@ const AdminAnnouncements = () => {
                                 )}
                                 <h3 className="font-bold text-charcoal text-lg">{announcement.title}</h3>
                             </div>
+
                             {announcement.description && (
                                 <p className="text-sm text-slate mb-2 line-clamp-2">{announcement.description}</p>
                             )}
+
+                            {/* Document Link */}
+                            {(announcement as any).link_url && (
+                                <a
+                                    href={(announcement as any).link_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 text-sm text-teal hover:text-gold transition-colors mb-2"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    {(announcement as any).link_text || localT.documentLink}
+                                    <ExternalLink className="w-3 h-3" />
+                                </a>
+                            )}
+
                             <p className="text-xs text-slate flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 {announcement.date}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                             {hasPermission('canEdit') && (
                                 <>
                                     <button
@@ -332,7 +381,7 @@ const AdminAnnouncements = () => {
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                     <form
                         onSubmit={handleSubmit}
-                        className="bg-white p-6 rounded-2xl w-full max-w-lg space-y-5"
+                        className="bg-white p-6 rounded-2xl w-full max-w-lg space-y-5 max-h-[90vh] overflow-y-auto"
                     >
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-bold text-charcoal">
@@ -370,6 +419,34 @@ const AdminAnnouncements = () => {
                                 placeholder={language === 'ar' ? 'أضف وصفاً للإعلان (اختياري)' : language === 'fr' ? 'Ajouter une description (optionnel)' : 'Add a description (optional)'}
                                 rows={4}
                             />
+                        </div>
+
+                        {/* Document Link Section */}
+                        <div className="bg-gray-50 p-4 rounded-xl space-y-3">
+                            <div className="flex items-center gap-2 text-charcoal font-medium">
+                                <LinkIcon className="w-4 h-4" />
+                                {localT.documentLink}
+                            </div>
+                            <div>
+                                <label className="block text-sm text-slate mb-1">{localT.linkUrl}</label>
+                                <input
+                                    type="url"
+                                    value={formData.link_url}
+                                    onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none text-sm"
+                                    placeholder={localT.linkPlaceholder}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-slate mb-1">{localT.linkText}</label>
+                                <input
+                                    type="text"
+                                    value={formData.link_text}
+                                    onChange={(e) => setFormData({ ...formData, link_text: e.target.value })}
+                                    className="w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-gold/30 focus:border-gold outline-none text-sm"
+                                    placeholder={localT.linkTextPlaceholder}
+                                />
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">

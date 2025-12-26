@@ -40,6 +40,8 @@ create table if not exists public.announcements (
   date date default current_date,
   urgent boolean default false,
   description text,
+  link_url text,
+  link_text text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

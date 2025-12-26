@@ -14,12 +14,15 @@ import {
   Lock,
   Shield,
   Building2,
-  Users
+  Users,
+  Upload
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
+import RichTextEditor from '@/admin/components/RichTextEditor';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
+import { uploadImage, validateImageFile } from '@/lib/storage';
 
 // News categories - all news types
 const NEWS_CATEGORIES = {
@@ -39,7 +42,7 @@ const NEWS_CATEGORIES = {
 
 const AdminNews = () => {
   const { hasPermission } = useAdmin();
-  const { t, language } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
   const { toast } = useToast();
 
   const [news, setNews] = useState<Article[]>([]);
@@ -48,6 +51,7 @@ const AdminNews = () => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<Article | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Get categories for current language
   const categories = NEWS_CATEGORIES[language as keyof typeof NEWS_CATEGORIES] || NEWS_CATEGORIES.en;
@@ -117,6 +121,39 @@ const AdminNews = () => {
   const getCategoryInfo = (categoryValue: string) => {
     const cat = categories.find(c => c.value === categoryValue);
     return cat || { label: categoryValue, icon: Newspaper, color: 'gray' };
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: t('common', 'error'),
+        description: validation.error,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadImage(file, 'news');
+      setFormData({ ...formData, image: url });
+      toast({
+        title: language === 'ar' ? 'تم رفع الصورة' : language === 'fr' ? 'Image téléchargée' : 'Image uploaded'
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: t('common', 'error'),
+        description: 'Failed to upload image',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const openNewModal = () => {
@@ -265,9 +302,9 @@ const AdminNews = () => {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         {/* Search */}
         <div className="flex-1 relative">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5`} />
           <input
-            className="w-full p-4 pr-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+            className={`w-full p-4 ${isRTL ? 'pl-12' : 'pr-12'} rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none`}
             placeholder={t('news', 'searchNews')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -279,8 +316,8 @@ const AdminNews = () => {
           <button
             onClick={() => setFilterCategory('all')}
             className={`px-4 py-3 rounded-xl font-medium transition-all ${filterCategory === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-slate hover:bg-gray-200'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-slate hover:bg-gray-200'
               }`}
           >
             {language === 'ar' ? 'الكل' : language === 'fr' ? 'Tous' : 'All'}
@@ -292,10 +329,10 @@ const AdminNews = () => {
                 key={cat.value}
                 onClick={() => setFilterCategory(cat.value)}
                 className={`px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${filterCategory === cat.value
-                    ? cat.color === 'blue'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-slate hover:bg-gray-200'
+                  ? cat.color === 'blue'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-purple-600 text-white'
+                  : 'bg-gray-100 text-slate hover:bg-gray-200'
                   }`}
               >
                 <Icon className="w-4 h-4" />
@@ -339,10 +376,10 @@ const AdminNews = () => {
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${catInfo.color === 'blue'
-                        ? 'bg-blue-100 text-blue-700'
-                        : catInfo.color === 'purple'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-gray-100 text-gray-700'
+                      ? 'bg-blue-100 text-blue-700'
+                      : catInfo.color === 'purple'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-gray-100 text-gray-700'
                       }`}>
                       <CatIcon className="w-3.5 h-3.5" />
                       {catInfo.label}
@@ -395,7 +432,7 @@ const AdminNews = () => {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <form
             onSubmit={handleSubmit}
-            className="bg-white p-6 rounded-2xl w-full max-w-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+            className="bg-white p-6 rounded-2xl w-full max-w-4xl space-y-5 max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-charcoal">
@@ -425,15 +462,15 @@ const AdminNews = () => {
                       type="button"
                       onClick={() => setFormData({ ...formData, category: cat.value })}
                       className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${isSelected
-                          ? cat.color === 'blue'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-200 hover:border-gray-300 text-slate'
+                        ? cat.color === 'blue'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-purple-500 bg-purple-50 text-purple-700'
+                        : 'border-gray-200 hover:border-gray-300 text-slate'
                         }`}
                     >
                       <div className={`p-2 rounded-lg ${isSelected
-                          ? cat.color === 'blue' ? 'bg-blue-100' : 'bg-purple-100'
-                          : 'bg-gray-100'
+                        ? cat.color === 'blue' ? 'bg-blue-100' : 'bg-purple-100'
+                        : 'bg-gray-100'
                         }`}>
                         <Icon className="w-5 h-5" />
                       </div>
@@ -455,18 +492,48 @@ const AdminNews = () => {
               />
             </div>
 
+            {/* Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'imageUrl')}</label>
-              <input
-                type="url"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
-                placeholder="https://..."
-              />
-              {formData.image && (
-                <img src={formData.image} alt="Preview" className="mt-2 w-32 h-20 object-cover rounded-lg" />
-              )}
+              <label className="block text-sm font-medium text-charcoal mb-2">
+                {language === 'ar' ? 'صورة الخبر' : language === 'fr' ? 'Image de l\'actualité' : 'News Image'}
+              </label>
+              <div className="flex gap-4 items-start">
+                <div className="flex-1">
+                  <label className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                    {uploadingImage ? (
+                      <span className="text-slate">
+                        {language === 'ar' ? 'جاري الرفع...' : language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
+                      </span>
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-gray-400" />
+                        <span className="text-slate">
+                          {language === 'ar' ? 'اضغط لرفع صورة' : language === 'fr' ? 'Cliquez pour télécharger' : 'Click to upload image'}
+                        </span>
+                      </>
+                    )}
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none mt-2"
+                    placeholder={language === 'ar' ? 'أو أدخل رابط الصورة' : language === 'fr' ? 'Ou entrez l\'URL de l\'image' : 'Or enter image URL'}
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  />
+                </div>
+                {formData.image && (
+                  <div className="w-32 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>
@@ -482,11 +549,10 @@ const AdminNews = () => {
 
             <div>
               <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'details')}</label>
-              <textarea
+              <RichTextEditor
                 value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows={6}
-                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none resize-none"
+                onChange={(html) => setFormData({ ...formData, content: html })}
+                placeholder={language === 'ar' ? 'اكتب تفاصيل الخبر هنا...' : language === 'fr' ? 'Écrivez les détails de l\'actualité ici...' : 'Write news details here...'}
               />
             </div>
 

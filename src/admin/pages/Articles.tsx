@@ -13,16 +13,19 @@ import {
     Save,
     Lock,
     Shield,
-    Upload
+    Upload,
+    Image as ImageIcon
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
+import RichTextEditor from '@/admin/components/RichTextEditor';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
+import { uploadImage, validateImageFile } from '@/lib/storage';
 
 const AdminArticles = () => {
     const { hasPermission, currentUser } = useAdmin();
-    const { t, tNested, language } = useLanguage();
+    const { t, tNested, language, isRTL } = useLanguage();
     const { toast } = useToast();
 
     const [articles, setArticles] = useState<Article[]>([]);
@@ -30,6 +33,7 @@ const AdminArticles = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -45,7 +49,11 @@ const AdminArticles = () => {
         const fetchArticles = async () => {
             try {
                 const data = await api.articles.getAll();
-                setArticles(data || []);
+                // Filter out news categories to show only articles
+                const articlesOnly = (data || []).filter((item: Article) =>
+                    !['أخبار المؤسسة', 'أخبار الإدارة', 'Institution News', 'Administration News'].includes(item.category)
+                );
+                setArticles(articlesOnly);
             } catch (error) {
                 console.error(error);
                 toast({
@@ -85,6 +93,39 @@ const AdminArticles = () => {
         article.author.includes(searchQuery) ||
         article.category.includes(searchQuery)
     );
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const validation = validateImageFile(file);
+        if (!validation.isValid) {
+            toast({
+                title: t('common', 'error'),
+                description: validation.error,
+                variant: 'destructive'
+            });
+            return;
+        }
+
+        setUploadingImage(true);
+        try {
+            const url = await uploadImage(file, 'articles');
+            setFormData({ ...formData, image: url });
+            toast({
+                title: language === 'ar' ? 'تم رفع الصورة' : language === 'fr' ? 'Image téléchargée' : 'Image uploaded'
+            });
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: t('common', 'error'),
+                description: 'Failed to upload image',
+                variant: 'destructive'
+            });
+        } finally {
+            setUploadingImage(false);
+        }
+    };
 
     const openNewModal = () => {
         if (!hasPermission('canCreate')) {
@@ -237,9 +278,9 @@ const AdminArticles = () => {
 
             {/* Search */}
             <div className="mb-6 relative">
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5`} />
                 <input
-                    className="w-full p-4 pr-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
+                    className={`w-full p-4 ${isRTL ? 'pl-12' : 'pr-12'} rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none`}
                     placeholder={t('articles', 'searchArticles')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -324,7 +365,7 @@ const AdminArticles = () => {
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                     <form
                         onSubmit={handleSubmit}
-                        className="bg-white p-6 rounded-2xl w-full max-w-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+                        className="bg-white p-6 rounded-2xl w-full max-w-4xl space-y-5 max-h-[90vh] overflow-y-auto"
                     >
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-bold text-charcoal">
@@ -339,54 +380,85 @@ const AdminArticles = () => {
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'articleTitle')}</label>
-                            <input
-                                required
-                                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
-                                placeholder={t('articles', 'articleTitle')}
-                                value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'author')}</label>
+                                <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'articleTitle')}</label>
                                 <input
                                     required
                                     className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
-                                    value={formData.author}
-                                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                                    placeholder={t('articles', 'articleTitle')}
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'category')}</label>
-                                <select
-                                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                >
-                                    <option value={tNested('articles', 'categories.articles')}>{tNested('articles', 'categories.articles')}</option>
-                                    <option value={tNested('articles', 'categories.institutionNews')}>{tNested('articles', 'categories.institutionNews')}</option>
-                                    <option value={tNested('articles', 'categories.creativity')}>{tNested('articles', 'categories.creativity')}</option>
-                                    <option value={tNested('articles', 'categories.sports')}>{tNested('articles', 'categories.sports')}</option>
-                                </select>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'author')}</label>
+                                    <input
+                                        required
+                                        className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
+                                        value={formData.author}
+                                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'category')}</label>
+                                    <select
+                                        className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    >
+                                        <option value={tNested('articles', 'categories.articles')}>{tNested('articles', 'categories.articles')}</option>
+                                        <option value={tNested('articles', 'categories.creativity')}>{tNested('articles', 'categories.creativity')}</option>
+                                        <option value={tNested('articles', 'categories.sports')}>{tNested('articles', 'categories.sports')}</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
+                        {/* Image Upload */}
                         <div>
-                            <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'imageUrl')}</label>
-                            <input
-                                type="url"
-                                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
-                                placeholder="https://..."
-                                value={formData.image}
-                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                            />
-                            {formData.image && (
-                                <img src={formData.image} alt="Preview" className="mt-2 w-32 h-20 object-cover rounded-lg" />
-                            )}
+                            <label className="block text-sm font-medium text-charcoal mb-2">
+                                {language === 'ar' ? 'صورة المقال' : language === 'fr' ? 'Image de l\'article' : 'Article Image'}
+                            </label>
+                            <div className="flex gap-4 items-start">
+                                <div className="flex-1">
+                                    <label className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-teal hover:bg-teal/5 transition-all">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="hidden"
+                                            disabled={uploadingImage}
+                                        />
+                                        {uploadingImage ? (
+                                            <span className="text-slate">
+                                                {language === 'ar' ? 'جاري الرفع...' : language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-6 h-6 text-gray-400" />
+                                                <span className="text-slate">
+                                                    {language === 'ar' ? 'اضغط لرفع صورة' : language === 'fr' ? 'Cliquez pour télécharger' : 'Click to upload image'}
+                                                </span>
+                                            </>
+                                        )}
+                                    </label>
+                                    <input
+                                        type="url"
+                                        className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none mt-2"
+                                        placeholder={language === 'ar' ? 'أو أدخل رابط الصورة' : language === 'fr' ? 'Ou entrez l\'URL de l\'image' : 'Or enter image URL'}
+                                        value={formData.image}
+                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                    />
+                                </div>
+                                {formData.image && (
+                                    <div className="w-32 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                                        <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div>
@@ -403,12 +475,10 @@ const AdminArticles = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'content')}</label>
-                            <textarea
-                                rows={6}
-                                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none resize-none"
-                                placeholder={t('articles', 'content')}
+                            <RichTextEditor
                                 value={formData.content}
-                                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                onChange={(html) => setFormData({ ...formData, content: html })}
+                                placeholder={language === 'ar' ? 'اكتب محتوى المقال هنا...' : language === 'fr' ? 'Écrivez le contenu de l\'article ici...' : 'Write article content here...'}
                             />
                         </div>
 
