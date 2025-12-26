@@ -154,7 +154,7 @@ const AdminDashboard = () => {
             {currentUser?.lastLogin && (
               <p className="text-sm text-slate flex items-center gap-2 mt-1">
                 <Clock className="w-4 h-4" />
-                {formatLastLogin(currentUser.lastLogin)}
+                {t('admin', 'lastLogin')}: {formatLastLogin(currentUser.lastLogin)}
               </p>
             )}
           </div>

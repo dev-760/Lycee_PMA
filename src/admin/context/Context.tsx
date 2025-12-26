@@ -145,12 +145,12 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         return {
             id: authUser.id,
             username: authUser.email.split('@')[0],
-            name: authUser.email.split('@')[0], // Fallback if name not available
+            name: authUser.name || authUser.email.split('@')[0], // Use name from auth or fallback
             email: authUser.email,
             role: authUser.role,
             createdAt: new Date().toISOString(), // Mock, as AuthUser doesn't have this
             isActive: true,
-            lastLogin: new Date().toISOString()
+            lastLogin: authUser.lastLogin || undefined
         };
     }, [authUser]);
 

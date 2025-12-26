@@ -95,21 +95,21 @@ export async function secureLogin(
 
         // Check for user object - if present, treat as success (even without explicit success field)
         const user = data.user || data.User || data.userData;
-        
+
         if (user) {
             // Look for access token in various possible locations
-            const accessToken = 
-                data.access_token || 
-                data.accessToken || 
+            const accessToken =
+                data.access_token ||
+                data.accessToken ||
                 data.token ||
                 data.session?.access_token ||
                 data.session?.accessToken ||
                 data.session?.token;
 
             // Look for expires_at in various locations
-            const expiresAt = 
-                data.expires_at || 
-                data.expiresAt || 
+            const expiresAt =
+                data.expires_at ||
+                data.expiresAt ||
                 data.expires ||
                 data.session?.expires_at ||
                 data.session?.expiresAt ||
@@ -118,20 +118,20 @@ export async function secureLogin(
 
             // Extract user role - prioritize role from Edge Function response
             // The Edge Function returns the role directly in data.user.role
-            let userRole = 
+            let userRole =
                 data.user?.role ||           // From Edge Function response (preferred)
                 user.role ||                 // Direct from user object
                 user.app_metadata?.role ||   // From metadata (fallback)
                 user.user_metadata?.role ||  // From metadata (fallback)
                 data.role;                   // From top level (fallback)
-            
+
             // Normalize role - ensure it's a valid UserRole
             // If role is 'authenticated' (Supabase Auth default), it's invalid for our app
             if (!userRole || userRole === 'authenticated') {
                 console.warn("Invalid or missing role, defaulting to 'user':", userRole);
                 userRole = 'user';
             }
-            
+
             // Log the role for debugging
             console.log("Extracted user role:", userRole, "from data:", {
                 "data.user?.role": data.user?.role,
@@ -148,7 +148,9 @@ export async function secureLogin(
                     user: {
                         id: user.id || user.userId || user.uid,
                         email: user.email || normalizedEmail,
-                        role: (userRole as any) || 'user'
+                        name: user.name || user.email?.split('@')[0],
+                        role: (userRole as any) || 'user',
+                        lastLogin: user.lastLogin || null
                     },
                     access_token: accessToken,
                     expires_at: typeof expiresAt === 'number' ? expiresAt : (Date.now() / 1000 + 3600)
@@ -165,7 +167,7 @@ export async function secureLogin(
                     fullData: JSON.stringify(data, null, 2).substring(0, 500)
                 };
                 console.error("Response has user but missing access token:", debugInfo);
-                
+
                 // Check if maybe the Edge Function expects us to use Supabase client-side auth
                 // In that case, we might need a different approach
                 return {

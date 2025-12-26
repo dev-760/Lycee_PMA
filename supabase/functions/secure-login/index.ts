@@ -19,7 +19,7 @@ serve(async (req) => {
     // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Missing Supabase environment variables')
     }
@@ -34,16 +34,16 @@ serve(async (req) => {
 
     // Parse request body
     const { email, password } = await req.json()
-    
+
     if (!email || !password) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Email and password are required' 
+        JSON.stringify({
+          success: false,
+          error: 'Email and password are required'
         }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -60,34 +60,34 @@ serve(async (req) => {
     if (authError || !authData.user) {
       // Don't reveal whether email exists or password is wrong (security best practice)
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Invalid email or password' 
+        JSON.stringify({
+          success: false,
+          error: 'Invalid email or password'
         }),
-        { 
+        {
           status: 200, // Return 200 even on error to prevent user enumeration
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
 
-    // Get user's role from the users table
+    // Get user's role and last login from the users table
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, username, name, email, role, is_active')
+      .select('id, username, name, email, role, is_active, last_login')
       .eq('id', authData.user.id)
       .single()
 
     if (userError || !userData) {
       console.error('Error fetching user data:', userError)
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'User account not found. Please contact administrator.' 
+        JSON.stringify({
+          success: false,
+          error: 'User account not found. Please contact administrator.'
         }),
-        { 
+        {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -95,16 +95,19 @@ serve(async (req) => {
     // Check if user account is active
     if (!userData.is_active) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Your account has been deactivated. Please contact administrator.' 
+        JSON.stringify({
+          success: false,
+          error: 'Your account has been deactivated. Please contact administrator.'
         }),
-        { 
+        {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
+
+    // Store the previous last login time to return to the user
+    const previousLastLogin = userData.last_login
 
     // Update last login timestamp
     await supabaseAdmin
@@ -117,13 +120,13 @@ serve(async (req) => {
 
     if (!session || !session.access_token) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Failed to create session' 
+        JSON.stringify({
+          success: false,
+          error: 'Failed to create session'
         }),
-        { 
+        {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -135,27 +138,29 @@ serve(async (req) => {
         user: {
           id: userData.id,
           email: userData.email,
-          role: userData.role || 'user'
+          name: userData.name,
+          role: userData.role || 'user',
+          lastLogin: previousLastLogin || null
         },
         access_token: session.access_token,
         expires_at: session.expires_at || Math.floor(Date.now() / 1000) + 3600
       }),
-      { 
+      {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
 
   } catch (error) {
     console.error('Login error:', error)
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'An unexpected error occurred. Please try again.' 
+      JSON.stringify({
+        success: false,
+        error: 'An unexpected error occurred. Please try again.'
       }),
-      { 
+      {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
   }

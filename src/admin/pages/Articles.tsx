@@ -460,8 +460,8 @@ const AdminArticles = () => {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, source_language: lang })}
                                         className={`px-4 py-2 rounded-lg font-medium transition-all ${formData.source_language === lang
-                                                ? 'bg-teal text-white shadow-md'
-                                                : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
+                                            ? 'bg-teal text-white shadow-md'
+                                            : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
                                             }`}
                                     >
                                         {LANGUAGE_NAMES[lang]}
@@ -505,8 +505,6 @@ const AdminArticles = () => {
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                     >
                                         <option value={tNested('articles', 'categories.articles')}>{tNested('articles', 'categories.articles')}</option>
-                                        <option value={tNested('articles', 'categories.creativity')}>{tNested('articles', 'categories.creativity')}</option>
-                                        <option value={tNested('articles', 'categories.sports')}>{tNested('articles', 'categories.sports')}</option>
                                     </select>
                                 </div>
                             </div>
