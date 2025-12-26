@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import Sidebar from "@/components/Sidebar";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { BookOpen, Newspaper, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/i18n";
 import { api } from "@/lib/api";
@@ -85,11 +86,7 @@ const Index = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-teal">
-        Loading...
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   const sections = {

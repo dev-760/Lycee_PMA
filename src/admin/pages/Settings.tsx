@@ -5,7 +5,6 @@ import {
     Save,
     RotateCcw,
     Globe,
-    Palette,
     Bell,
     Shield,
     Mail,
@@ -15,7 +14,6 @@ import {
     Twitter,
     Instagram,
     Youtube,
-    AlertTriangle,
     CheckCircle,
     Database,
     Users

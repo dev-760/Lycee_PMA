@@ -140,7 +140,13 @@
 
   body {
     @apply bg-background text-foreground font-tajawal antialiased;
-    background-color: #F4F1EC;
+  }
+
+  /* Dark mode body styles */
+  .dark body,
+  html.dark body {
+    background-color: hsl(210 30% 8%);
+    color: hsl(36 17% 93%);
   }
 }
 

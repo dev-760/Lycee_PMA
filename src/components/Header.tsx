@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Calendar, Clock } from "lucide-react";
 import { useLanguage } from "@/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "./ThemeToggle";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -101,7 +102,8 @@ const Header = () => {
               <Clock className="w-3.5 h-3.5" />
               {formattedTime}
             </Link>
-            <LanguageSwitcher variant="header" showLabel={false} />
+            <LanguageSwitcher variant="header" />
+            <ThemeToggle variant="compact" />
           </div>
         </div>
       </div>
@@ -220,7 +222,10 @@ const Header = () => {
               <Calendar className="w-4 h-4" style={{ color: '#C6A24A' }} />
               <span>{currentDate}</span>
             </div>
-            <LanguageSwitcher variant="admin" showLabel={false} />
+            <div className="flex items-center gap-3">
+              <LanguageSwitcher variant="admin" />
+              <ThemeToggle variant="compact" />
+            </div>
           </div>
         </nav>
       </div>

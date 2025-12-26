@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AdminProvider } from "@/admin/context/Context";
 import { LanguageProvider } from "@/i18n";
+import { ThemeProvider } from "@/context/ThemeContext";
 import Index from "./pages/Index";
 import ArticleDetails from "./pages/ArticleDetails";
 import Contact from "./pages/Contact";
@@ -34,49 +35,51 @@ import { AuthProvider } from "@/context/AuthContext";
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <TooltipProvider>
-          <AuthProvider>
-            <AdminProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/article/:id" element={<ArticleDetails />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/articles" element={<Articles />} />
-                  <Route path="/news" element={<News />} />
-                  <Route path="/announcements" element={<Announcements />} />
+      <ThemeProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <AuthProvider>
+              <AdminProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/article/:id" element={<ArticleDetails />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/articles" element={<Articles />} />
+                    <Route path="/news" element={<News />} />
+                    <Route path="/announcements" element={<Announcements />} />
 
-                  {/* Admin Routes */}
-                  <Route path="/admin/login" element={<AdminLogin />} />
+                    {/* Admin Routes */}
+                    <Route path="/admin/login" element={<AdminLogin />} />
 
 
-                  <Route element={<ProtectedRoute allowedRoles={['super_admin', 'editor', 'administrator']} />}>
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/articles" element={<AdminArticles />} />
-                    <Route path="/admin/announcements" element={<AdminAnnouncements />} />
-                    <Route path="/admin/news" element={<AdminNews />} />
-                    <Route path="/admin/users" element={<AdminUsers />} />
-                    <Route path="/admin/settings" element={<AdminSettings />} />
-                    <Route path="/admin/absent-teachers" element={<AdminAbsentTeachers />} />
-                    <Route path="/admin/*" element={<AdminDashboard />} />
-                  </Route>
+                    <Route element={<ProtectedRoute allowedRoles={['super_admin', 'editor', 'administrator']} />}>
+                      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                      <Route path="/admin/articles" element={<AdminArticles />} />
+                      <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+                      <Route path="/admin/news" element={<AdminNews />} />
+                      <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route path="/admin/settings" element={<AdminSettings />} />
+                      <Route path="/admin/absent-teachers" element={<AdminAbsentTeachers />} />
+                      <Route path="/admin/*" element={<AdminDashboard />} />
+                    </Route>
 
-                  {/* 403 Route */}
-                  <Route path="/403" element={<Forbidden />} />
+                    {/* 403 Route */}
+                    <Route path="/403" element={<Forbidden />} />
 
-                  {/* 404 Route */}
+                    {/* 404 Route */}
 
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </AdminProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </LanguageProvider>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </AdminProvider>
+            </AuthProvider>
+          </TooltipProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </HelmetProvider>
 );
