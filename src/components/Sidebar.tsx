@@ -64,17 +64,7 @@ const Sidebar = ({ position }: SidebarProps) => {
     load();
   }, []);
 
-<<<<<<< HEAD
-
-  // Swap positions: Announcements now on the RIGHT (or whichever matches the user's "position" request)
-  // If the User wanted announcements to stay on 'left' but look different, I might be wrong. 
-  // But usually "fix position" means "move it".
-  // Let's assume the user wants Announcements on the Right (Standard for News).
-
   if (position === "right") {
-=======
-  if (position === "left") {
->>>>>>> 730d80ec287e5a7313f464cb76c3db6a8f258756
     return (
       <aside className="space-y-6">
         {/* Announcements */}
