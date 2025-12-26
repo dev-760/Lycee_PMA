@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { api } from '@/lib/api';
+import { Article } from '@/types';
 import {
     Plus,
     Search,
@@ -14,7 +15,7 @@ import {
     Shield
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
-import { articles as initialArticles, Article } from '@/data/mockData';
+import ImageUpload from '@/admin/components/ImageUpload';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
@@ -284,7 +285,7 @@ const AdminArticles = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <a
-                                                    href={`/article/${article.id}`}
+                                                    href={`/ article / ${article.id} `}
                                                     target="_blank"
                                                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                                     title={t('common', 'view')}
@@ -382,21 +383,12 @@ const AdminArticles = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'imageUrl')}</label>
-                                <div className="flex gap-3">
-                                    <input
-                                        type="url"
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                        className="flex-1 p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none"
-                                        placeholder="https://..."
-                                    />
-                                    <div className="w-24 h-14 rounded-lg overflow-hidden border border-gray-200">
-                                        <img src={formData.image} alt="preview" className="w-full h-full object-cover" />
-                                    </div>
-                                </div>
-                            </div>
+                            <ImageUpload
+                                value={formData.image}
+                                onChange={(url) => setFormData({ ...formData, image: url })}
+                                folder="articles"
+                                label={t('articles', 'imageUrl')}
+                            />
 
                             <div>
                                 <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'excerpt')}</label>

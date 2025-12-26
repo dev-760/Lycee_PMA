@@ -17,17 +17,21 @@ create table if not exists public.articles (
 
 alter table public.articles enable row level security;
 
+-- Articles: Anyone can read
 create policy "Articles are viewable by everyone" on public.articles
   for select using (true);
 
+-- Articles: Authenticated users can insert
 create policy "Articles are insertable by authenticated users" on public.articles
-  for insert with check (auth.role() = 'authenticated');
+  for insert with check (auth.uid() is not null);
 
+-- Articles: Authenticated users can update
 create policy "Articles are updatable by authenticated users" on public.articles
-  for update using (auth.role() = 'authenticated');
+  for update using (auth.uid() is not null);
 
+-- Articles: Authenticated users can delete
 create policy "Articles are deletable by authenticated users" on public.articles
-  for delete using (auth.role() = 'authenticated');
+  for delete using (auth.uid() is not null);
 
 -- 2. Announcements Table
 create table if not exists public.announcements (
@@ -41,22 +45,26 @@ create table if not exists public.announcements (
 
 alter table public.announcements enable row level security;
 
+-- Announcements: Anyone can read
 create policy "Announcements are viewable by everyone" on public.announcements
   for select using (true);
 
+-- Announcements: Authenticated users can insert
 create policy "Announcements are insertable by authenticated users" on public.announcements
-  for insert with check (auth.role() = 'authenticated');
+  for insert with check (auth.uid() is not null);
 
+-- Announcements: Authenticated users can update
 create policy "Announcements are updatable by authenticated users" on public.announcements
-  for update using (auth.role() = 'authenticated');
+  for update using (auth.uid() is not null);
 
+-- Announcements: Authenticated users can delete
 create policy "Announcements are deletable by authenticated users" on public.announcements
-  for delete using (auth.role() = 'authenticated');
+  for delete using (auth.uid() is not null);
 
 -- 3. Users Table (Public Profile)
 -- This table mirrors auth.users for extra profile data
 create table if not exists public.users (
-  id uuid references auth.users not null primary key,
+  id uuid references auth.users on delete cascade not null primary key,
   username text unique,
   name text,
   email text,
@@ -68,16 +76,26 @@ create table if not exists public.users (
 
 alter table public.users enable row level security;
 
+-- Users: Authenticated users can view all users
 create policy "Users are viewable by authenticated users" on public.users
-  for select using (auth.role() = 'authenticated');
+  for select using (auth.uid() is not null);
 
+-- Users: Users can update their own profile
 create policy "Users can update their own profile" on public.users
   for update using (auth.uid() = id);
 
--- Allow admins (if we had specific claims) or just authenticated for now to create users in this table
--- Note: inserting here usually happens via trigger after auth.signUp, but admin might want to manually manage it.
+-- Users: Authenticated can insert users (for admin creating new users)
 create policy "Users can be inserted by authenticated" on public.users
-  for insert with check (auth.role() = 'authenticated');
+  for insert with check (auth.uid() is not null);
+
+-- Users: Only super_admins can delete (checked via role in users table)
+create policy "Users can be deleted by super_admin" on public.users
+  for delete using (
+    exists (
+      select 1 from public.users
+      where id = auth.uid() and role = 'super_admin'
+    )
+  );
 
 -- 4. Cultural Facts
 create table if not exists public.cultural_facts (
@@ -106,15 +124,78 @@ create table if not exists public.absent_teachers (
 
 alter table public.absent_teachers enable row level security;
 
+-- Absent teachers: Anyone can view
 create policy "Absent teachers viewable by everyone" on public.absent_teachers
   for select using (true);
 
+-- Absent teachers: Authenticated can insert
 create policy "Absent teachers insertable by authenticated" on public.absent_teachers
-  for insert with check (auth.role() = 'authenticated');
+  for insert with check (auth.uid() is not null);
 
+-- Absent teachers: Authenticated can update
 create policy "Absent teachers updatable by authenticated" on public.absent_teachers
-  for update using (auth.role() = 'authenticated');
+  for update using (auth.uid() is not null);
 
+-- Absent teachers: Authenticated can delete
 create policy "Absent teachers deletable by authenticated" on public.absent_teachers
-  for delete using (auth.role() = 'authenticated');
+  for delete using (auth.uid() is not null);
 
+-- ===========================================
+-- STORAGE BUCKET FOR IMAGES
+-- ===========================================
+
+-- Create storage bucket for media uploads
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'media',
+  'media',
+  true,
+  5242880, -- 5MB limit
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+on conflict (id) do nothing;
+
+-- Storage policies for the media bucket
+-- Anyone can view public images
+create policy "Public read access for media"
+on storage.objects for select
+using (bucket_id = 'media');
+
+-- Authenticated users can upload
+create policy "Authenticated users can upload media"
+on storage.objects for insert
+with check (bucket_id = 'media' and auth.uid() is not null);
+
+-- Authenticated users can update their uploads
+create policy "Authenticated users can update media"
+on storage.objects for update
+using (bucket_id = 'media' and auth.uid() is not null);
+
+-- Authenticated users can delete media
+create policy "Authenticated users can delete media"
+on storage.objects for delete
+using (bucket_id = 'media' and auth.uid() is not null);
+
+-- ===========================================
+-- FUNCTION: Create user profile on signup
+-- ===========================================
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users (id, email, name, username, role)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
+    coalesce(new.raw_user_meta_data->>'role', 'user')
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger: Create profile on new auth user
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

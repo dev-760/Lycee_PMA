@@ -1,6 +1,5 @@
-
-import { getAuthenticatedClient } from '@/lib/supabase';
-import { Article, Announcement, AdminUser } from '@/data/mockData';
+import { getAuthenticatedClient } from './supabase';
+import { Article, Announcement, AdminUser, CulturalFact } from '@/types';
 import { AbsentTeacher } from '@/components/AbsentTeachers';
 
 // Articles API
@@ -227,6 +226,31 @@ export const api = {
 
             if (error) throw error;
             return data;
+        },
+
+        update: async (id: string, updates: Partial<AdminUser>) => {
+            const supabase = getAuthenticatedClient();
+            const { error } = await supabase
+                .from('users')
+                .update({
+                    name: updates.name,
+                    username: updates.username,
+                    role: updates.role,
+                    is_active: updates.isActive
+                })
+                .eq('id', id);
+
+            if (error) throw error;
+        },
+
+        delete: async (id: string) => {
+            const supabase = getAuthenticatedClient();
+            const { error } = await supabase
+                .from('users')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
         }
     }
 };

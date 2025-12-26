@@ -57,7 +57,7 @@ const AbsentTeachersAdmin = () => {
     note: ''
   });
 
-  const t = {
+  const translations = {
     en: {
       title: 'Manage Absent Teachers',
       search: 'Search...',
@@ -85,7 +85,9 @@ const AbsentTeachersAdmin = () => {
       weekendError: 'لا يمكن اختيار عطلة نهاية الأسبوع',
       dateError: 'تاريخ النهاية يجب أن يكون بعد أو يساوي تاريخ البداية'
     }
-  }[language] ?? t.en;
+  };
+
+  const t = translations[language as keyof typeof translations] ?? translations.en;
 
   useEffect(() => {
     const fetchTeachers = async () => {

@@ -15,7 +15,7 @@ import {
     Clock
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
-import { announcements as initialAnnouncements, Announcement } from '@/data/mockData';
+import { Announcement } from '@/types';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
