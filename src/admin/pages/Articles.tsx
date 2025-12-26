@@ -1,7 +1,16 @@
+/**
+ * Admin Articles Page
+ * 
+ * Manages articles with multilingual support.
+ * - Admin can select source language when creating content
+ * - Translations are generated automatically on save
+ * - Displays content in user's selected language
+ */
+
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { api } from '@/lib/api';
-import { Article } from '@/types';
+import { Article, Language, SUPPORTED_LANGUAGES, LANGUAGE_NAMES } from '@/types';
 import {
     Plus,
     Search,
@@ -14,7 +23,9 @@ import {
     Lock,
     Shield,
     Upload,
-    Image as ImageIcon
+    Globe,
+    Sparkles,
+    Loader2,
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import RichTextEditor from '@/admin/components/RichTextEditor';
@@ -25,11 +36,12 @@ import { uploadImage, validateImageFile } from '@/lib/storage';
 
 const AdminArticles = () => {
     const { hasPermission, currentUser } = useAdmin();
-    const { t, tNested, language, isRTL } = useLanguage();
+    const { t, tNested, language, isRTL, getContentWithFallback } = useLanguage();
     const { toast } = useToast();
 
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
@@ -41,7 +53,8 @@ const AdminArticles = () => {
         content: '',
         category: 'مقالات',
         author: '',
-        image: ''
+        image: '',
+        source_language: 'ar' as Language,
     });
 
     // Fetch articles
@@ -88,11 +101,15 @@ const AdminArticles = () => {
         );
     }
 
-    const filteredArticles = articles.filter(article =>
-        article.title.includes(searchQuery) ||
-        article.author.includes(searchQuery) ||
-        article.category.includes(searchQuery)
-    );
+    // Filter articles based on search (searches in current language)
+    const filteredArticles = articles.filter(article => {
+        const title = getContentWithFallback(article.title_translations, article.title);
+        return (
+            title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            article.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            article.category.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    });
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -144,7 +161,8 @@ const AdminArticles = () => {
             content: '',
             category: tNested('articles', 'categories.articles'),
             author: currentUser?.name || '',
-            image: ''
+            image: '',
+            source_language: language, // Default to current UI language
         });
         setIsModalOpen(true);
     };
@@ -160,28 +178,43 @@ const AdminArticles = () => {
         }
 
         setEditingArticle(article);
+        // Load content in source language for editing
+        const sourceLang = article.source_language || 'ar';
         setFormData({
-            title: article.title,
-            excerpt: article.excerpt,
-            content: article.content || '',
+            title: article.title_translations?.[sourceLang] || article.title,
+            excerpt: article.excerpt_translations?.[sourceLang] || article.excerpt,
+            content: article.content_translations?.[sourceLang] || article.content || '',
             category: article.category,
             author: article.author,
-            image: article.image
+            image: article.image,
+            source_language: sourceLang,
         });
         setIsModalOpen(true);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSaving(true);
 
         try {
             if (editingArticle) {
-                await api.articles.update(editingArticle.id, formData);
+                // Update with re-translation
+                const updated = await api.articles.update(
+                    editingArticle.id,
+                    {
+                        title: formData.title,
+                        excerpt: formData.excerpt,
+                        content: formData.content,
+                        category: formData.category,
+                        author: formData.author,
+                        image: formData.image,
+                    },
+                    formData.source_language,
+                    true // retranslate
+                );
 
                 setArticles(prev =>
-                    prev.map(a =>
-                        a.id === editingArticle.id ? { ...a, ...formData } : a
-                    )
+                    prev.map(a => a.id === editingArticle.id ? updated : a)
                 );
 
                 toast({
@@ -189,11 +222,19 @@ const AdminArticles = () => {
                     description: t('articles', 'articleUpdated')
                 });
             } else {
-                const created = await api.articles.create({
-                    ...formData,
-                    date: new Date().toISOString().split('T')[0],
-                    featured: false
-                });
+                // Create with automatic translation
+                const created = await api.articles.create(
+                    {
+                        title: formData.title,
+                        excerpt: formData.excerpt,
+                        content: formData.content,
+                        category: formData.category,
+                        author: formData.author,
+                        image: formData.image,
+                        featured: false,
+                    },
+                    formData.source_language
+                );
 
                 if (created) {
                     setArticles(prev => [created, ...prev]);
@@ -213,6 +254,8 @@ const AdminArticles = () => {
                 description: 'Operation failed',
                 variant: 'destructive'
             });
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -244,6 +287,20 @@ const AdminArticles = () => {
             });
         }
     };
+
+    // Local translations
+    const localT: Record<string, Record<Language, string>> = {
+        writeIn: { ar: 'كتابة المحتوى بـ', en: 'Write content in', fr: 'Écrire le contenu en' },
+        autoTranslate: { ar: 'سيتم الترجمة تلقائياً', en: 'Will be translated automatically', fr: 'Sera traduit automatiquement' },
+        translating: { ar: 'جاري الحفظ والترجمة...', en: 'Saving and translating...', fr: 'Enregistrement et traduction...' },
+        articleImage: { ar: 'صورة المقال', en: 'Article Image', fr: "Image de l'article" },
+        clickUpload: { ar: 'اضغط لرفع صورة', en: 'Click to upload image', fr: 'Cliquez pour télécharger' },
+        uploading: { ar: 'جاري الرفع...', en: 'Uploading...', fr: 'Téléchargement...' },
+        orEnterUrl: { ar: 'أو أدخل رابط الصورة', en: 'Or enter image URL', fr: "Ou entrez l'URL de l'image" },
+        writeContent: { ar: 'اكتب محتوى المقال هنا...', en: 'Write article content here...', fr: "Écrivez le contenu de l'article ici..." },
+    };
+
+    const getLocal = (key: string) => localT[key]?.[language] || localT[key]?.en || key;
 
     return (
         <AdminLayout>
@@ -305,14 +362,24 @@ const AdminArticles = () => {
                             <tr key={article.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="p-4">
                                     {article.image ? (
-                                        <img src={article.image} alt={article.title} className="w-16 h-12 rounded-lg object-cover" />
+                                        <img src={article.image} alt={getContentWithFallback(article.title_translations, article.title)} className="w-16 h-12 rounded-lg object-cover" />
                                     ) : (
                                         <div className="w-16 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
                                             <FileText className="w-6 h-6 text-gray-400" />
                                         </div>
                                     )}
                                 </td>
-                                <td className="p-4 font-medium text-charcoal">{article.title}</td>
+                                <td className="p-4">
+                                    {/* Display title in user's selected language */}
+                                    <p className="font-medium text-charcoal">
+                                        {getContentWithFallback(article.title_translations, article.title)}
+                                    </p>
+                                    {/* Show source language indicator */}
+                                    <span className="text-xs text-slate flex items-center gap-1 mt-1">
+                                        <Globe className="w-3 h-3" />
+                                        {LANGUAGE_NAMES[article.source_language]}
+                                    </span>
+                                </td>
                                 <td className="p-4 text-slate">{article.author}</td>
                                 <td className="p-4">
                                     <span className="px-3 py-1 bg-teal/10 text-teal text-xs font-medium rounded-full">
@@ -380,6 +447,33 @@ const AdminArticles = () => {
                             </button>
                         </div>
 
+                        {/* Source Language Selection */}
+                        <div className="bg-gradient-to-r from-teal/10 to-blue-50 p-4 rounded-xl">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Globe className="w-5 h-5 text-teal" />
+                                <span className="font-medium text-charcoal">{getLocal('writeIn')}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                {SUPPORTED_LANGUAGES.map((lang) => (
+                                    <button
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, source_language: lang })}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-all ${formData.source_language === lang
+                                                ? 'bg-teal text-white shadow-md'
+                                                : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
+                                            }`}
+                                    >
+                                        {LANGUAGE_NAMES[lang]}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-xs text-slate mt-2 flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" />
+                                {getLocal('autoTranslate')}
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'articleTitle')}</label>
@@ -389,6 +483,7 @@ const AdminArticles = () => {
                                     placeholder={t('articles', 'articleTitle')}
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    dir={formData.source_language === 'ar' ? 'rtl' : 'ltr'}
                                 />
                             </div>
 
@@ -420,7 +515,7 @@ const AdminArticles = () => {
                         {/* Image Upload */}
                         <div>
                             <label className="block text-sm font-medium text-charcoal mb-2">
-                                {language === 'ar' ? 'صورة المقال' : language === 'fr' ? 'Image de l\'article' : 'Article Image'}
+                                {getLocal('articleImage')}
                             </label>
                             <div className="flex gap-4 items-start">
                                 <div className="flex-1">
@@ -434,13 +529,13 @@ const AdminArticles = () => {
                                         />
                                         {uploadingImage ? (
                                             <span className="text-slate">
-                                                {language === 'ar' ? 'جاري الرفع...' : language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
+                                                {getLocal('uploading')}
                                             </span>
                                         ) : (
                                             <>
                                                 <Upload className="w-6 h-6 text-gray-400" />
                                                 <span className="text-slate">
-                                                    {language === 'ar' ? 'اضغط لرفع صورة' : language === 'fr' ? 'Cliquez pour télécharger' : 'Click to upload image'}
+                                                    {getLocal('clickUpload')}
                                                 </span>
                                             </>
                                         )}
@@ -448,7 +543,7 @@ const AdminArticles = () => {
                                     <input
                                         type="url"
                                         className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none mt-2"
-                                        placeholder={language === 'ar' ? 'أو أدخل رابط الصورة' : language === 'fr' ? 'Ou entrez l\'URL de l\'image' : 'Or enter image URL'}
+                                        placeholder={getLocal('orEnterUrl')}
                                         value={formData.image}
                                         onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                                     />
@@ -470,6 +565,7 @@ const AdminArticles = () => {
                                 placeholder={t('articles', 'excerpt')}
                                 value={formData.excerpt}
                                 onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                                dir={formData.source_language === 'ar' ? 'rtl' : 'ltr'}
                             />
                         </div>
 
@@ -478,22 +574,33 @@ const AdminArticles = () => {
                             <RichTextEditor
                                 value={formData.content}
                                 onChange={(html) => setFormData({ ...formData, content: html })}
-                                placeholder={language === 'ar' ? 'اكتب محتوى المقال هنا...' : language === 'fr' ? 'Écrivez le contenu de l\'article ici...' : 'Write article content here...'}
+                                placeholder={getLocal('writeContent')}
                             />
                         </div>
 
                         <div className="flex gap-3 pt-4">
                             <button
                                 type="submit"
-                                className="flex-1 bg-gradient-to-r from-teal to-teal-light text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                                disabled={saving}
+                                className="flex-1 bg-gradient-to-r from-teal to-teal-light text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                             >
-                                <Save className="w-5 h-5" />
-                                {editingArticle ? t('articles', 'saveChanges') : t('articles', 'addArticle')}
+                                {saving ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        {getLocal('translating')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-5 h-5" />
+                                        {editingArticle ? t('articles', 'saveChanges') : t('articles', 'addArticle')}
+                                    </>
+                                )}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsModalOpen(false)}
-                                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors"
+                                disabled={saving}
+                                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
                                 {t('common', 'cancel')}
                             </button>

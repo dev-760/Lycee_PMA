@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { AbsentTeacher } from '@/types';
+import { AbsentTeacher, Language } from '@/types';
 import {
   Users,
   Plus,
@@ -41,7 +41,7 @@ const formatDuration = (days: number, lang: string) => {
 
 const AbsentTeachersAdmin = () => {
   const { hasPermission } = useAdmin();
-  const { language, isRTL, t: tGlobal } = useLanguage();
+  const { language, isRTL, t: tGlobal, getContentWithFallback } = useLanguage();
   const { toast } = useToast();
 
   const [teachers, setTeachers] = useState<AbsentTeacher[]>([]);
@@ -162,10 +162,14 @@ const AbsentTeachersAdmin = () => {
     );
   }
 
-  const filteredTeachers = teachers.filter(teacher =>
-    teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.subject?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTeachers = teachers.filter(teacher => {
+    const name = getContentWithFallback(teacher.name_translations, teacher.name);
+    const subject = getContentWithFallback(teacher.subject_translations, teacher.subject || '');
+    return (
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      subject.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const validateDates = () => {
     if (formData.dateTo < formData.dateFrom) {
@@ -215,17 +219,19 @@ const AbsentTeachersAdmin = () => {
 
     try {
       if (editingTeacher) {
-        const updated = await api.absentTeachers.update(editingTeacher.id, {
-          ...formData,
-          duration
-        });
+        const updated = await api.absentTeachers.update(
+          editingTeacher.id,
+          { ...formData, duration },
+          language as Language,
+          true // retranslate
+        );
 
         setTeachers(prev => prev.map(t => t.id === editingTeacher.id ? updated : t));
       } else {
-        const created = await api.absentTeachers.create({
-          ...formData,
-          duration
-        });
+        const created = await api.absentTeachers.create(
+          { ...formData, duration },
+          language as Language
+        );
 
         setTeachers(prev => [...prev, created]);
       }
@@ -302,8 +308,12 @@ const AbsentTeachersAdmin = () => {
             <tbody className="divide-y divide-gray-100">
               {filteredTeachers.map((teacher) => (
                 <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-4 font-medium text-charcoal">{teacher.name}</td>
-                  <td className="p-4 text-slate">{teacher.subject}</td>
+                  <td className="p-4 font-medium text-charcoal">
+                    {getContentWithFallback(teacher.name_translations, teacher.name)}
+                  </td>
+                  <td className="p-4 text-slate">
+                    {getContentWithFallback(teacher.subject_translations, teacher.subject || '')}
+                  </td>
                   <td className="p-4 text-slate">{teacher.dateFrom}</td>
                   <td className="p-4 text-slate">{teacher.dateTo}</td>
                   <td className="p-4">

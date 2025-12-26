@@ -1,7 +1,16 @@
+/**
+ * Admin News Page
+ * 
+ * Manages news articles with multilingual support.
+ * - Admin can select source language when creating content
+ * - Translations are generated automatically on save
+ * - Displays content in user's selected language
+ */
+
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { api } from '@/lib/api';
-import { Article } from '@/types';
+import { Article, Language, SUPPORTED_LANGUAGES, LANGUAGE_NAMES } from '@/types';
 import {
   Plus,
   Search,
@@ -15,7 +24,10 @@ import {
   Shield,
   Building2,
   Users,
-  Upload
+  Upload,
+  Globe,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import RichTextEditor from '@/admin/components/RichTextEditor';
@@ -31,8 +43,8 @@ const NEWS_CATEGORIES = {
     { value: 'أخبار الإدارة', label: 'أخبار الإدارة', icon: Users, color: 'purple' }
   ],
   fr: [
-    { value: 'أخبار المؤسسة', label: 'Actualités de l\'institution', icon: Building2, color: 'blue' },
-    { value: 'أخبار الإدارة', label: 'Actualités de l\'administration', icon: Users, color: 'purple' }
+    { value: 'أخبار المؤسسة', label: "Actualités de l'institution", icon: Building2, color: 'blue' },
+    { value: 'أخبار الإدارة', label: "Actualités de l'administration", icon: Users, color: 'purple' }
   ],
   en: [
     { value: 'أخبار المؤسسة', label: 'Institution News', icon: Building2, color: 'blue' },
@@ -42,11 +54,12 @@ const NEWS_CATEGORIES = {
 
 const AdminNews = () => {
   const { hasPermission } = useAdmin();
-  const { t, language, isRTL } = useLanguage();
+  const { t, language, isRTL, getContentWithFallback } = useLanguage();
   const { toast } = useToast();
 
   const [news, setNews] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,7 +75,8 @@ const AdminNews = () => {
     content: '',
     category: 'أخبار المؤسسة',
     author: 'الإدارة',
-    image: ''
+    image: '',
+    source_language: 'ar' as Language,
   });
 
   // Fetch All News - filter articles with news categories
@@ -110,18 +124,19 @@ const AdminNews = () => {
     );
   }
 
-  // Filter by search and category
+  // Get category display info
+  const getCategoryInfo = (categoryValue: string) => {
+    return categories.find(c => c.value === categoryValue) || categories[0];
+  };
+
+  // Filter news based on search (searches in current language)
   const filteredNews = news.filter(item => {
-    const matchesSearch = item.title.includes(searchQuery) || item.content?.includes(searchQuery);
+    const title = getContentWithFallback(item.title_translations, item.title);
+    const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.author.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
-
-  // Get category display info
-  const getCategoryInfo = (categoryValue: string) => {
-    const cat = categories.find(c => c.value === categoryValue);
-    return cat || { label: categoryValue, icon: Newspaper, color: 'gray' };
-  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -165,6 +180,7 @@ const AdminNews = () => {
       });
       return;
     }
+
     setEditingNews(null);
     setFormData({
       title: '',
@@ -172,7 +188,8 @@ const AdminNews = () => {
       content: '',
       category: 'أخبار المؤسسة',
       author: 'الإدارة',
-      image: ''
+      image: '',
+      source_language: language, // Default to current UI language
     });
     setIsModalOpen(true);
   };
@@ -186,27 +203,45 @@ const AdminNews = () => {
       });
       return;
     }
+
     setEditingNews(item);
+    // Load content in source language for editing
+    const sourceLang = item.source_language || 'ar';
     setFormData({
-      title: item.title,
-      excerpt: item.excerpt,
-      content: item.content || '',
+      title: item.title_translations?.[sourceLang] || item.title,
+      excerpt: item.excerpt_translations?.[sourceLang] || item.excerpt,
+      content: item.content_translations?.[sourceLang] || item.content || '',
       category: item.category,
       author: item.author,
-      image: item.image
+      image: item.image,
+      source_language: sourceLang,
     });
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
 
     try {
       if (editingNews) {
-        await api.articles.update(editingNews.id, formData);
+        // Update with re-translation
+        const updated = await api.articles.update(
+          editingNews.id,
+          {
+            title: formData.title,
+            excerpt: formData.excerpt,
+            content: formData.content,
+            category: formData.category,
+            author: formData.author,
+            image: formData.image,
+          },
+          formData.source_language,
+          true // retranslate
+        );
 
         setNews(prev =>
-          prev.map(n => n.id === editingNews.id ? { ...n, ...formData } : n)
+          prev.map(n => n.id === editingNews.id ? updated : n)
         );
 
         toast({
@@ -214,13 +249,20 @@ const AdminNews = () => {
           description: t('news', 'newsUpdated')
         });
       } else {
-        const newNewsItem = {
-          ...formData,
-          date: new Date().toISOString().split('T')[0],
-          featured: false
-        };
+        // Create with automatic translation
+        const created = await api.articles.create(
+          {
+            title: formData.title,
+            excerpt: formData.excerpt,
+            content: formData.content,
+            category: formData.category,
+            author: formData.author,
+            image: formData.image,
+            featured: false,
+          },
+          formData.source_language
+        );
 
-        const created = await api.articles.create(newNewsItem);
         if (created) {
           setNews(prev => [created, ...prev]);
           toast({
@@ -237,6 +279,8 @@ const AdminNews = () => {
         description: 'Operation failed',
         variant: 'destructive'
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -269,23 +313,37 @@ const AdminNews = () => {
     }
   };
 
+  // Local translations
+  const localT: Record<string, Record<Language, string>> = {
+    writeIn: { ar: 'كتابة المحتوى بـ', en: 'Write content in', fr: 'Écrire le contenu en' },
+    autoTranslate: { ar: 'سيتم الترجمة تلقائياً', en: 'Will be translated automatically', fr: 'Sera traduit automatiquement' },
+    translating: { ar: 'جاري الحفظ والترجمة...', en: 'Saving and translating...', fr: 'Enregistrement et traduction...' },
+    newsImage: { ar: 'صورة الخبر', en: 'News Image', fr: "Image de l'actualité" },
+    clickUpload: { ar: 'اضغط لرفع صورة', en: 'Click to upload image', fr: 'Cliquez pour télécharger' },
+    uploading: { ar: 'جاري الرفع...', en: 'Uploading...', fr: 'Téléchargement...' },
+    orEnterUrl: { ar: 'أو أدخل رابط الصورة', en: 'Or enter image URL', fr: "Ou entrez l'URL de l'image" },
+    writeContent: { ar: 'اكتب محتوى الخبر هنا...', en: 'Write news content here...', fr: "Écrivez le contenu de l'actualité ici..." },
+  };
+
+  const getLocal = (key: string) => localT[key]?.[language] || localT[key]?.en || key;
+
   return (
     <AdminLayout>
       <Helmet>
         <title>{t('news', 'manageNews')} - {t('auth', 'controlPanel')}</title>
       </Helmet>
 
-      {/* Header */}
+      {/* Page header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Newspaper className="w-8 h-8 text-blue-600" />
+          <Newspaper className="w-8 h-8 text-blue-500" />
           {t('news', 'manageNews')}
         </h1>
 
         {hasPermission('canCreate') ? (
           <button
             onClick={openNewModal}
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-colors"
+            className="bg-blue-500 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-blue-600 transition-colors"
           >
             <Plus className="w-5 h-5" />
             {t('news', 'addNews')}
@@ -299,7 +357,7 @@ const AdminNews = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         {/* Search */}
         <div className="flex-1 relative">
           <Search className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5`} />
@@ -311,121 +369,103 @@ const AdminNews = () => {
           />
         </div>
 
-        {/* Category Filter */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilterCategory('all')}
-            className={`px-4 py-3 rounded-xl font-medium transition-all ${filterCategory === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-slate hover:bg-gray-200'
-              }`}
-          >
-            {language === 'ar' ? 'الكل' : language === 'fr' ? 'Tous' : 'All'}
-          </button>
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <button
-                key={cat.value}
-                onClick={() => setFilterCategory(cat.value)}
-                className={`px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${filterCategory === cat.value
-                  ? cat.color === 'blue'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-slate hover:bg-gray-200'
-                  }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{cat.label}</span>
-              </button>
-            );
-          })}
+        {/* Category filter */}
+        <select
+          className="p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none min-w-[200px]"
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+        >
+          <option value="all">{t('common', 'all')}</option>
+          {categories.map(cat => (
+            <option key={cat.value} value={cat.value}>{cat.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* News Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredNews.map(item => {
+          const category = getCategoryInfo(item.category);
+          const CategoryIcon = category.icon;
+          return (
+            <div key={item.id} className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
+              {/* Image */}
+              {item.image ? (
+                <img src={item.image} alt={getContentWithFallback(item.title_translations, item.title)} className="w-full h-40 object-cover" />
+              ) : (
+                <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                  <Newspaper className="w-12 h-12 text-blue-300" />
+                </div>
+              )}
+
+              <div className="p-5">
+                {/* Category badge */}
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 ${category.color === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                  }`}>
+                  <CategoryIcon className="w-3.5 h-3.5" />
+                  {category.label}
+                </div>
+
+                {/* Title - Multilingual */}
+                <h3 className="font-bold text-charcoal text-lg mb-2 line-clamp-2">
+                  {getContentWithFallback(item.title_translations, item.title)}
+                </h3>
+
+                {/* Excerpt - Multilingual */}
+                <p className="text-slate text-sm mb-3 line-clamp-2">
+                  {getContentWithFallback(item.excerpt_translations, item.excerpt)}
+                </p>
+
+                {/* Meta */}
+                <div className="flex items-center justify-between text-xs text-slate mb-4">
+                  <span>{item.author}</span>
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    {LANGUAGE_NAMES[item.source_language]}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                  <a
+                    href={`/article/${item.id}`}
+                    target="_blank"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title={t('articles', 'view')}
+                  >
+                    <Eye className="w-4 h-4 text-slate" />
+                  </a>
+                  {hasPermission('canEdit') && (
+                    <button
+                      onClick={() => openEditModal(item)}
+                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      title={t('common', 'edit')}
+                    >
+                      <Edit2 className="w-4 h-4 text-blue-500" />
+                    </button>
+                  )}
+                  {hasPermission('canDelete') && (
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      title={t('common', 'delete')}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredNews.length === 0 && (
+        <div className="text-center py-12 bg-white rounded-2xl shadow-card">
+          <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-slate">{t('news', 'noNews')}</p>
         </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'image')}</th>
-              <th className="p-4 text-start font-semibold text-charcoal">{t('news', 'newsTitle')}</th>
-              <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'category')}</th>
-              <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'date')}</th>
-              <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'actions')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredNews.map((item) => {
-              const catInfo = getCategoryInfo(item.category);
-              const CatIcon = catInfo.icon;
-              return (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-4">
-                    {item.image ? (
-                      <img src={item.image} alt={item.title} className="w-16 h-12 object-cover rounded-lg" />
-                    ) : (
-                      <div className="w-16 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                        <Newspaper className="w-6 h-6 text-gray-400" />
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    <p className="font-medium text-charcoal">{item.title}</p>
-                    <p className="text-sm text-slate line-clamp-1">{item.excerpt}</p>
-                  </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${catInfo.color === 'blue'
-                      ? 'bg-blue-100 text-blue-700'
-                      : catInfo.color === 'purple'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-gray-100 text-gray-700'
-                      }`}>
-                      <CatIcon className="w-3.5 h-3.5" />
-                      {catInfo.label}
-                    </span>
-                  </td>
-                  <td className="p-4 text-slate">{item.date}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={`/article/${item.id}`}
-                        target="_blank"
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4 text-slate" />
-                      </a>
-                      {hasPermission('canEdit') && (
-                        <button
-                          onClick={() => openEditModal(item)}
-                          className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4 text-blue-600" />
-                        </button>
-                      )}
-                      {hasPermission('canDelete') && (
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {filteredNews.length === 0 && (
-          <div className="text-center py-12">
-            <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-slate">{t('news', 'noNews')}</p>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
@@ -447,55 +487,74 @@ const AdminNews = () => {
               </button>
             </div>
 
-            {/* News Category Selection */}
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-3">
-                {t('articles', 'category')}
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {categories.map((cat) => {
-                  const Icon = cat.icon;
-                  const isSelected = formData.category === cat.value;
-                  return (
-                    <button
-                      key={cat.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, category: cat.value })}
-                      className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${isSelected
-                        ? cat.color === 'blue'
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-purple-500 bg-purple-50 text-purple-700'
-                        : 'border-gray-200 hover:border-gray-300 text-slate'
-                        }`}
-                    >
-                      <div className={`p-2 rounded-lg ${isSelected
-                        ? cat.color === 'blue' ? 'bg-blue-100' : 'bg-purple-100'
-                        : 'bg-gray-100'
-                        }`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <span className="font-medium">{cat.label}</span>
-                    </button>
-                  );
-                })}
+            {/* Source Language Selection */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <Globe className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-charcoal">{getLocal('writeIn')}</span>
               </div>
+              <div className="flex gap-2">
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, source_language: lang })}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${formData.source_language === lang
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-slate hover:bg-gray-50 border border-gray-200'
+                      }`}
+                  >
+                    {LANGUAGE_NAMES[lang]}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate mt-2 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                {getLocal('autoTranslate')}
+              </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'newsTitle')}</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'newsTitle')}</label>
+                <input
+                  required
+                  className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+                  placeholder={t('news', 'newsTitle')}
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  dir={formData.source_language === 'ar' ? 'rtl' : 'ltr'}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'author')}</label>
+                  <input
+                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+                    value={formData.author}
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'category')}</label>
+                  <select
+                    className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  >
+                    {categories.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Image Upload */}
             <div>
               <label className="block text-sm font-medium text-charcoal mb-2">
-                {language === 'ar' ? 'صورة الخبر' : language === 'fr' ? 'Image de l\'actualité' : 'News Image'}
+                {getLocal('newsImage')}
               </label>
               <div className="flex gap-4 items-start">
                 <div className="flex-1">
@@ -508,22 +567,18 @@ const AdminNews = () => {
                       disabled={uploadingImage}
                     />
                     {uploadingImage ? (
-                      <span className="text-slate">
-                        {language === 'ar' ? 'جاري الرفع...' : language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
-                      </span>
+                      <span className="text-slate">{getLocal('uploading')}</span>
                     ) : (
                       <>
                         <Upload className="w-6 h-6 text-gray-400" />
-                        <span className="text-slate">
-                          {language === 'ar' ? 'اضغط لرفع صورة' : language === 'fr' ? 'Cliquez pour télécharger' : 'Click to upload image'}
-                        </span>
+                        <span className="text-slate">{getLocal('clickUpload')}</span>
                       </>
                     )}
                   </label>
                   <input
                     type="url"
                     className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none mt-2"
-                    placeholder={language === 'ar' ? 'أو أدخل رابط الصورة' : language === 'fr' ? 'Ou entrez l\'URL de l\'image' : 'Or enter image URL'}
+                    placeholder={getLocal('orEnterUrl')}
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                   />
@@ -537,37 +592,50 @@ const AdminNews = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'summary')}</label>
+              <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'excerpt')}</label>
               <textarea
-                value={formData.excerpt}
-                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                required
                 rows={2}
                 className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none resize-none"
-                required
+                placeholder={t('articles', 'excerpt')}
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                dir={formData.source_language === 'ar' ? 'rtl' : 'ltr'}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">{t('news', 'details')}</label>
+              <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'content')}</label>
               <RichTextEditor
                 value={formData.content}
                 onChange={(html) => setFormData({ ...formData, content: html })}
-                placeholder={language === 'ar' ? 'اكتب تفاصيل الخبر هنا...' : language === 'fr' ? 'Écrivez les détails de l\'actualité ici...' : 'Write news details here...'}
+                placeholder={getLocal('writeContent')}
               />
             </div>
 
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                disabled={saving}
+                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <Save className="w-5 h-5" />
-                {editingNews ? t('articles', 'saveChanges') : t('news', 'addNews')}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {getLocal('translating')}
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    {editingNews ? t('articles', 'saveChanges') : t('news', 'addNews')}
+                  </>
+                )}
               </button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors"
+                disabled={saving}
+                className="px-8 py-4 rounded-xl border border-gray-200 text-slate font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 {t('common', 'cancel')}
               </button>

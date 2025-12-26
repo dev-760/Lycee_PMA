@@ -1,3 +1,10 @@
+/**
+ * Article Details Page
+ * 
+ * Displays article content with multilingual support.
+ * Content is displayed in the user's selected language.
+ */
+
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
@@ -19,7 +26,7 @@ import {
 
 const ArticleDetails = () => {
   const { id } = useParams();
-  const { t, language, isRTL } = useLanguage();
+  const { t, language, isRTL, getContentWithFallback } = useLanguage();
 
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -133,11 +140,16 @@ const ArticleDetails = () => {
     );
   }
 
+  // Get localized content
+  const title = getContentWithFallback(article.title_translations, article.title);
+  const excerpt = getContentWithFallback(article.excerpt_translations, article.excerpt);
+  const content = getContentWithFallback(article.content_translations, article.content || '');
+
   // Handle share
   const handleShare = async () => {
     const shareData = {
-      title: article.title,
-      text: article.excerpt || article.title,
+      title: title,
+      text: excerpt || title,
       url: window.location.href
     };
 
@@ -158,11 +170,11 @@ const ArticleDetails = () => {
     <>
       <Helmet>
         <title>
-          {article.title} - {localT.siteName}
+          {title} - {localT.siteName}
         </title>
         <meta
           name="description"
-          content={article.excerpt || article.title}
+          content={excerpt || title}
         />
       </Helmet>
 
@@ -186,7 +198,7 @@ const ArticleDetails = () => {
                 <div className="relative">
                   <img
                     src={article.image}
-                    alt={article.title}
+                    alt={title}
                     className="w-full h-64 md:h-[400px] object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 to-transparent"></div>
@@ -201,9 +213,9 @@ const ArticleDetails = () => {
                   </span>
                 )}
 
-                {/* Title */}
+                {/* Title - Multilingual */}
                 <h1 className="text-2xl md:text-4xl font-bold text-charcoal mt-5 mb-5 leading-relaxed">
-                  {article.title}
+                  {title}
                 </h1>
 
                 {/* Meta */}
@@ -235,10 +247,10 @@ const ArticleDetails = () => {
                   </button>
                 </div>
 
-                {/* Content - Render as HTML */}
+                {/* Content - Multilingual - Render as HTML */}
                 <div
                   className="article-content prose prose-lg max-w-none text-charcoal leading-[2]"
-                  dangerouslySetInnerHTML={{ __html: article.content || article.excerpt || '' }}
+                  dangerouslySetInnerHTML={{ __html: content || excerpt || '' }}
                 />
 
                 {/* Back to articles */}
