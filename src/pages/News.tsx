@@ -2,29 +2,43 @@ import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
-import { mainArticle, weeklyNews, adminNews } from "@/data/mockData";
 import { Newspaper } from "lucide-react";
 import { useLanguage } from "@/i18n";
 
+type Article = {
+  id: string | number;
+  title: string;
+  description?: string;
+  image?: string;
+  date?: string;
+};
+
 const News = () => {
   const { t, language } = useLanguage();
-  const allNews = [mainArticle, weeklyNews, ...adminNews];
+
+  // ✅ No mock data – safe for production deploy
+  const allNews: Article[] = [];
 
   const pageContent = {
     ar: {
-      tag: 'الأخبار',
-      title: 'أخبار المؤسسة',
-      description: 'تابع آخر الأخبار والتحديثات من ثانوية الأمير مولاي عبد الله',
+      tag: "الأخبار",
+      title: "أخبار المؤسسة",
+      description: "تابع آخر الأخبار والتحديثات من ثانوية الأمير مولاي عبد الله",
+      empty: "لا توجد أخبار حالياً",
     },
     en: {
-      tag: 'News',
-      title: 'Institution News',
-      description: 'Follow the latest news and updates from Prince Moulay Abdellah High School',
+      tag: "News",
+      title: "Institution News",
+      description:
+        "Follow the latest news and updates from Prince Moulay Abdellah High School",
+      empty: "No news available at the moment",
     },
     fr: {
-      tag: 'Actualités',
-      title: 'Actualités de l\'institution',
-      description: 'Suivez les dernières nouvelles et mises à jour du Lycée Prince Moulay Abdellah',
+      tag: "Actualités",
+      title: "Actualités de l'institution",
+      description:
+        "Suivez les dernières nouvelles et mises à jour du Lycée Prince Moulay Abdellah",
+      empty: "Aucune actualité pour le moment",
     },
   };
 
@@ -33,12 +47,15 @@ const News = () => {
   return (
     <>
       <Helmet>
-        <title>{t('nav', 'news')} - {t('common', 'siteName')}</title>
+        <title>
+          {t("nav", "news")} - {t("common", "siteName")}
+        </title>
         <meta name="description" content={content.description} />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-gradient-warm">
         <Header />
+
         <main id="main" className="flex-1 py-12">
           <div className="container">
             {/* Page Header */}
@@ -48,21 +65,33 @@ const News = () => {
                 <div>
                   <div className="flex items-center gap-2 text-teal mb-1">
                     <Newspaper className="w-5 h-5" />
-                    <span className="text-sm font-semibold">{content.tag}</span>
+                    <span className="text-sm font-semibold">
+                      {content.tag}
+                    </span>
                   </div>
-                  <h1 className="text-3xl font-bold text-charcoal">{content.title}</h1>
+                  <h1 className="text-3xl font-bold text-charcoal">
+                    {content.title}
+                  </h1>
                 </div>
               </div>
               <p className="text-slate mr-6">{content.description}</p>
             </div>
 
+            {/* News Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allNews.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
+              {allNews.length > 0 ? (
+                allNews.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))
+              ) : (
+                <p className="text-slate col-span-full text-center">
+                  {content.empty}
+                </p>
+              )}
             </div>
           </div>
         </main>
+
         <Footer />
       </div>
     </>
