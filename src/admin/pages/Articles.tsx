@@ -332,97 +332,88 @@ const AdminArticles = () => {
                 />
             </div>
 
-            {/* Loading State */}
-            {loading && (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 text-teal animate-spin" />
-                </div>
-            )}
-
             {/* Table */}
-            {!loading && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b">
-                            <tr>
-                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'image')}</th>
-                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'articleTitle')}</th>
-                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'author')}</th>
-                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'category')}</th>
-                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'date')}</th>
-                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {filteredArticles.map(article => (
-                                <tr key={article.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="p-4">
-                                        {article.image ? (
-                                            <img src={article.image} alt={getContentWithFallback(article.title_translations, article.title)} className="w-16 h-12 rounded-lg object-cover" />
-                                        ) : (
-                                            <div className="w-16 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                                <FileText className="w-6 h-6 text-gray-400" />
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="p-4">
-                                        {/* Display title in user's selected language */}
-                                        <p className="font-medium text-charcoal">
-                                            {getContentWithFallback(article.title_translations, article.title)}
-                                        </p>
-                                        {/* Show source language indicator */}
-                                        <span className="text-xs text-slate flex items-center gap-1 mt-1">
-                                            <Globe className="w-3 h-3" />
-                                            {LANGUAGE_NAMES[article.source_language]}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-slate">{article.author}</td>
-                                    <td className="p-4">
-                                        <span className="px-3 py-1 bg-teal/10 text-teal text-xs font-medium rounded-full">
-                                            {article.category}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-slate">{article.date}</td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-2">
-                                            <a
-                                                href={`/article/${article.id}`}
-                                                target="_blank"
-                                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                            >
-                                                <Eye className="w-4 h-4 text-slate" />
-                                            </a>
-                                            {hasPermission('canEdit') && (
-                                                <button
-                                                    onClick={() => openEditModal(article)}
-                                                    className="p-2 hover:bg-teal/10 rounded-lg transition-colors"
-                                                >
-                                                    <Edit2 className="w-4 h-4 text-teal" />
-                                                </button>
-                                            )}
-                                            {hasPermission('canDelete') && (
-                                                <button
-                                                    onClick={() => handleDelete(article.id)}
-                                                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                                </button>
-                                            )}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                <table className="w-full">
+                    <thead className="bg-gray-50 border-b">
+                        <tr>
+                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'image')}</th>
+                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'articleTitle')}</th>
+                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'author')}</th>
+                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'category')}</th>
+                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'date')}</th>
+                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {filteredArticles.map(article => (
+                            <tr key={article.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="p-4">
+                                    {article.image ? (
+                                        <img src={article.image} alt={getContentWithFallback(article.title_translations, article.title)} className="w-16 h-12 rounded-lg object-cover" />
+                                    ) : (
+                                        <div className="w-16 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                            <FileText className="w-6 h-6 text-gray-400" />
                                         </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    )}
+                                </td>
+                                <td className="p-4">
+                                    {/* Display title in user's selected language */}
+                                    <p className="font-medium text-charcoal">
+                                        {getContentWithFallback(article.title_translations, article.title)}
+                                    </p>
+                                    {/* Show source language indicator */}
+                                    <span className="text-xs text-slate flex items-center gap-1 mt-1">
+                                        <Globe className="w-3 h-3" />
+                                        {LANGUAGE_NAMES[article.source_language]}
+                                    </span>
+                                </td>
+                                <td className="p-4 text-slate">{article.author}</td>
+                                <td className="p-4">
+                                    <span className="px-3 py-1 bg-teal/10 text-teal text-xs font-medium rounded-full">
+                                        {article.category}
+                                    </span>
+                                </td>
+                                <td className="p-4 text-slate">{article.date}</td>
+                                <td className="p-4">
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={`/article/${article.id}`}
+                                            target="_blank"
+                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        >
+                                            <Eye className="w-4 h-4 text-slate" />
+                                        </a>
+                                        {hasPermission('canEdit') && (
+                                            <button
+                                                onClick={() => openEditModal(article)}
+                                                className="p-2 hover:bg-teal/10 rounded-lg transition-colors"
+                                            >
+                                                <Edit2 className="w-4 h-4 text-teal" />
+                                            </button>
+                                        )}
+                                        {hasPermission('canDelete') && (
+                                            <button
+                                                onClick={() => handleDelete(article.id)}
+                                                className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
 
-                    {filteredArticles.length === 0 && (
-                        <div className="text-center py-12">
-                            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                            <p className="text-slate">{t('articles', 'noArticles')}</p>
-                        </div>
-                    )}
-                </div>
-            )}
+                {filteredArticles.length === 0 && (
+                    <div className="text-center py-12">
+                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-slate">{t('articles', 'noArticles')}</p>
+                    </div>
+                )}
+            </div>
 
             {/* Modal */}
             {isModalOpen && (

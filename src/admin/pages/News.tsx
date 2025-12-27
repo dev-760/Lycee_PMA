@@ -370,94 +370,85 @@ const AdminNews = () => {
         </select>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-        </div>
-      )}
-
       {/* News Grid */}
-      {!loading && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredNews.map(item => {
-            const category = getCategoryInfo(item.category);
-            const CategoryIcon = category.icon;
-            return (
-              <div key={item.id} className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
-                {/* Image */}
-                {item.image ? (
-                  <img src={item.image} alt={getContentWithFallback(item.title_translations, item.title)} className="w-full h-40 object-cover" />
-                ) : (
-                  <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                    <Newspaper className="w-12 h-12 text-blue-300" />
-                  </div>
-                )}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredNews.map(item => {
+          const category = getCategoryInfo(item.category);
+          const CategoryIcon = category.icon;
+          return (
+            <div key={item.id} className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
+              {/* Image */}
+              {item.image ? (
+                <img src={item.image} alt={getContentWithFallback(item.title_translations, item.title)} className="w-full h-40 object-cover" />
+              ) : (
+                <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                  <Newspaper className="w-12 h-12 text-blue-300" />
+                </div>
+              )}
 
-                <div className="p-5">
-                  {/* Category badge */}
-                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 ${category.color === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                    }`}>
-                    <CategoryIcon className="w-3.5 h-3.5" />
-                    {category.label}
-                  </div>
+              <div className="p-5">
+                {/* Category badge */}
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 ${category.color === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                  }`}>
+                  <CategoryIcon className="w-3.5 h-3.5" />
+                  {category.label}
+                </div>
 
-                  {/* Title - Multilingual */}
-                  <h3 className="font-bold text-charcoal text-lg mb-2 line-clamp-2">
-                    {getContentWithFallback(item.title_translations, item.title)}
-                  </h3>
+                {/* Title - Multilingual */}
+                <h3 className="font-bold text-charcoal text-lg mb-2 line-clamp-2">
+                  {getContentWithFallback(item.title_translations, item.title)}
+                </h3>
 
-                  {/* Excerpt - Multilingual */}
-                  <p className="text-slate text-sm mb-3 line-clamp-2">
-                    {getContentWithFallback(item.excerpt_translations, item.excerpt)}
-                  </p>
+                {/* Excerpt - Multilingual */}
+                <p className="text-slate text-sm mb-3 line-clamp-2">
+                  {getContentWithFallback(item.excerpt_translations, item.excerpt)}
+                </p>
 
-                  {/* Meta */}
-                  <div className="flex items-center justify-between text-xs text-slate mb-4">
-                    <span>{item.author}</span>
-                    <span className="flex items-center gap-1">
-                      <Globe className="w-3 h-3" />
-                      {LANGUAGE_NAMES[item.source_language]}
-                    </span>
-                  </div>
+                {/* Meta */}
+                <div className="flex items-center justify-between text-xs text-slate mb-4">
+                  <span>{item.author}</span>
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    {LANGUAGE_NAMES[item.source_language]}
+                  </span>
+                </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                    <a
-                      href={`/article/${item.id}`}
-                      target="_blank"
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      title={t('articles', 'view')}
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                  <a
+                    href={`/article/${item.id}`}
+                    target="_blank"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title={t('articles', 'view')}
+                  >
+                    <Eye className="w-4 h-4 text-slate" />
+                  </a>
+                  {hasPermission('canEdit') && (
+                    <button
+                      onClick={() => openEditModal(item)}
+                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      title={t('common', 'edit')}
                     >
-                      <Eye className="w-4 h-4 text-slate" />
-                    </a>
-                    {hasPermission('canEdit') && (
-                      <button
-                        onClick={() => openEditModal(item)}
-                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                        title={t('common', 'edit')}
-                      >
-                        <Edit2 className="w-4 h-4 text-blue-500" />
-                      </button>
-                    )}
-                    {hasPermission('canDelete') && (
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        title={t('common', 'delete')}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
-                    )}
-                  </div>
+                      <Edit2 className="w-4 h-4 text-blue-500" />
+                    </button>
+                  )}
+                  {hasPermission('canDelete') && (
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      title={t('common', 'delete')}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                  )}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          );
+        })}
+      </div>
 
-      {!loading && filteredNews.length === 0 && (
+      {filteredNews.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl shadow-card">
           <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-slate">{t('news', 'noNews')}</p>

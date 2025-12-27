@@ -369,7 +369,7 @@ const MediaUploader = ({
                         placeholder={t('imageUrl')}
                         value={imageUrl}
                         onChange={(e) => setImageUrl(e.target.value)}
-                        className="flex-1 p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none text-sm text-charcoal bg-white"
+                        className="flex-1 p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none text-sm"
                         disabled={images.length >= MAX_IMAGES}
                     />
                     <button
@@ -466,7 +466,7 @@ const MediaUploader = ({
                         placeholder={t('videoUrl')}
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
-                        className="flex-1 p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 outline-none text-sm text-charcoal bg-white"
+                        className="flex-1 p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 outline-none text-sm"
                         disabled={videos.length >= MAX_VIDEOS}
                     />
                     <button
