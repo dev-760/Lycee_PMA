@@ -22,17 +22,18 @@ import {
     Save,
     Lock,
     Shield,
-    Upload,
     Globe,
     Sparkles,
     Loader2,
+    Image as ImageIcon,
+    Video,
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import RichTextEditor from '@/admin/components/RichTextEditor';
+import MediaUploader from '@/admin/components/MediaUploader';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
-import { uploadImage, validateImageFile } from '@/lib/storage';
 
 const AdminArticles = () => {
     const { hasPermission, currentUser } = useAdmin();
@@ -45,7 +46,6 @@ const AdminArticles = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
-    const [uploadingImage, setUploadingImage] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -53,7 +53,8 @@ const AdminArticles = () => {
         content: '',
         category: 'مقالات',
         author: '',
-        image: '',
+        images: [] as string[],
+        videos: [] as string[],
         source_language: 'ar' as Language,
     });
 
@@ -111,39 +112,6 @@ const AdminArticles = () => {
         );
     });
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const validation = validateImageFile(file);
-        if (!validation.isValid) {
-            toast({
-                title: t('common', 'error'),
-                description: validation.error,
-                variant: 'destructive'
-            });
-            return;
-        }
-
-        setUploadingImage(true);
-        try {
-            const url = await uploadImage(file, 'articles');
-            setFormData({ ...formData, image: url });
-            toast({
-                title: language === 'ar' ? 'تم رفع الصورة' : language === 'fr' ? 'Image téléchargée' : 'Image uploaded'
-            });
-        } catch (error) {
-            console.error(error);
-            toast({
-                title: t('common', 'error'),
-                description: 'Failed to upload image',
-                variant: 'destructive'
-            });
-        } finally {
-            setUploadingImage(false);
-        }
-    };
-
     const openNewModal = () => {
         if (!hasPermission('canCreate')) {
             toast({
@@ -161,7 +129,8 @@ const AdminArticles = () => {
             content: '',
             category: tNested('articles', 'categories.articles'),
             author: currentUser?.name || '',
-            image: '',
+            images: [],
+            videos: [],
             source_language: language, // Default to current UI language
         });
         setIsModalOpen(true);
@@ -180,13 +149,25 @@ const AdminArticles = () => {
         setEditingArticle(article);
         // Load content in source language for editing
         const sourceLang = article.source_language || 'ar';
+
+        // Build images array from legacy image + new images array
+        const allImages: string[] = [];
+        if (article.image) allImages.push(article.image);
+        if (article.images && article.images.length > 0) {
+            // Add any images not already in the array
+            article.images.forEach(img => {
+                if (!allImages.includes(img)) allImages.push(img);
+            });
+        }
+
         setFormData({
             title: article.title_translations?.[sourceLang] || article.title,
             excerpt: article.excerpt_translations?.[sourceLang] || article.excerpt,
             content: article.content_translations?.[sourceLang] || article.content || '',
             category: article.category,
             author: article.author,
-            image: article.image,
+            images: allImages,
+            videos: article.videos || [],
             source_language: sourceLang,
         });
         setIsModalOpen(true);
@@ -197,6 +178,9 @@ const AdminArticles = () => {
         setSaving(true);
 
         try {
+            // Use the first image as the main image for backward compatibility
+            const mainImage = formData.images[0] || '';
+
             if (editingArticle) {
                 // Update with re-translation
                 const updated = await api.articles.update(
@@ -207,7 +191,9 @@ const AdminArticles = () => {
                         content: formData.content,
                         category: formData.category,
                         author: formData.author,
-                        image: formData.image,
+                        image: mainImage,
+                        images: formData.images,
+                        videos: formData.videos,
                     },
                     formData.source_language,
                     true // retranslate
@@ -230,7 +216,9 @@ const AdminArticles = () => {
                         content: formData.content,
                         category: formData.category,
                         author: formData.author,
-                        image: formData.image,
+                        image: mainImage,
+                        images: formData.images,
+                        videos: formData.videos,
                         featured: false,
                     },
                     formData.source_language
@@ -344,88 +332,97 @@ const AdminArticles = () => {
                 />
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                        <tr>
-                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'image')}</th>
-                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'articleTitle')}</th>
-                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'author')}</th>
-                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'category')}</th>
-                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'date')}</th>
-                            <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredArticles.map(article => (
-                            <tr key={article.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="p-4">
-                                    {article.image ? (
-                                        <img src={article.image} alt={getContentWithFallback(article.title_translations, article.title)} className="w-16 h-12 rounded-lg object-cover" />
-                                    ) : (
-                                        <div className="w-16 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                            <FileText className="w-6 h-6 text-gray-400" />
-                                        </div>
-                                    )}
-                                </td>
-                                <td className="p-4">
-                                    {/* Display title in user's selected language */}
-                                    <p className="font-medium text-charcoal">
-                                        {getContentWithFallback(article.title_translations, article.title)}
-                                    </p>
-                                    {/* Show source language indicator */}
-                                    <span className="text-xs text-slate flex items-center gap-1 mt-1">
-                                        <Globe className="w-3 h-3" />
-                                        {LANGUAGE_NAMES[article.source_language]}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-slate">{article.author}</td>
-                                <td className="p-4">
-                                    <span className="px-3 py-1 bg-teal/10 text-teal text-xs font-medium rounded-full">
-                                        {article.category}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-slate">{article.date}</td>
-                                <td className="p-4">
-                                    <div className="flex items-center gap-2">
-                                        <a
-                                            href={`/article/${article.id}`}
-                                            target="_blank"
-                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                        >
-                                            <Eye className="w-4 h-4 text-slate" />
-                                        </a>
-                                        {hasPermission('canEdit') && (
-                                            <button
-                                                onClick={() => openEditModal(article)}
-                                                className="p-2 hover:bg-teal/10 rounded-lg transition-colors"
-                                            >
-                                                <Edit2 className="w-4 h-4 text-teal" />
-                                            </button>
-                                        )}
-                                        {hasPermission('canDelete') && (
-                                            <button
-                                                onClick={() => handleDelete(article.id)}
-                                                className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* Loading State */}
+            {loading && (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 text-teal animate-spin" />
+                </div>
+            )}
 
-                {filteredArticles.length === 0 && (
-                    <div className="text-center py-12">
-                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-slate">{t('articles', 'noArticles')}</p>
-                    </div>
-                )}
-            </div>
+            {/* Table */}
+            {!loading && (
+                <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
+                            <tr>
+                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'image')}</th>
+                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'articleTitle')}</th>
+                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'author')}</th>
+                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'category')}</th>
+                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'date')}</th>
+                                <th className="p-4 text-start font-semibold text-charcoal">{t('articles', 'actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {filteredArticles.map(article => (
+                                <tr key={article.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="p-4">
+                                        {article.image ? (
+                                            <img src={article.image} alt={getContentWithFallback(article.title_translations, article.title)} className="w-16 h-12 rounded-lg object-cover" />
+                                        ) : (
+                                            <div className="w-16 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                                <FileText className="w-6 h-6 text-gray-400" />
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="p-4">
+                                        {/* Display title in user's selected language */}
+                                        <p className="font-medium text-charcoal">
+                                            {getContentWithFallback(article.title_translations, article.title)}
+                                        </p>
+                                        {/* Show source language indicator */}
+                                        <span className="text-xs text-slate flex items-center gap-1 mt-1">
+                                            <Globe className="w-3 h-3" />
+                                            {LANGUAGE_NAMES[article.source_language]}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-slate">{article.author}</td>
+                                    <td className="p-4">
+                                        <span className="px-3 py-1 bg-teal/10 text-teal text-xs font-medium rounded-full">
+                                            {article.category}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-slate">{article.date}</td>
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-2">
+                                            <a
+                                                href={`/article/${article.id}`}
+                                                target="_blank"
+                                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                            >
+                                                <Eye className="w-4 h-4 text-slate" />
+                                            </a>
+                                            {hasPermission('canEdit') && (
+                                                <button
+                                                    onClick={() => openEditModal(article)}
+                                                    className="p-2 hover:bg-teal/10 rounded-lg transition-colors"
+                                                >
+                                                    <Edit2 className="w-4 h-4 text-teal" />
+                                                </button>
+                                            )}
+                                            {hasPermission('canDelete') && (
+                                                <button
+                                                    onClick={() => handleDelete(article.id)}
+                                                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {filteredArticles.length === 0 && (
+                        <div className="text-center py-12">
+                            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-slate">{t('articles', 'noArticles')}</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Modal */}
             {isModalOpen && (
@@ -510,49 +507,14 @@ const AdminArticles = () => {
                             </div>
                         </div>
 
-                        {/* Image Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-charcoal mb-2">
-                                {getLocal('articleImage')}
-                            </label>
-                            <div className="flex gap-4 items-start">
-                                <div className="flex-1">
-                                    <label className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-teal hover:bg-teal/5 transition-all">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            className="hidden"
-                                            disabled={uploadingImage}
-                                        />
-                                        {uploadingImage ? (
-                                            <span className="text-slate">
-                                                {getLocal('uploading')}
-                                            </span>
-                                        ) : (
-                                            <>
-                                                <Upload className="w-6 h-6 text-gray-400" />
-                                                <span className="text-slate">
-                                                    {getLocal('clickUpload')}
-                                                </span>
-                                            </>
-                                        )}
-                                    </label>
-                                    <input
-                                        type="url"
-                                        className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-teal/30 focus:border-teal outline-none mt-2"
-                                        placeholder={getLocal('orEnterUrl')}
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    />
-                                </div>
-                                {formData.image && (
-                                    <div className="w-32 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                                        <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        {/* Media Upload - Images & Videos */}
+                        <MediaUploader
+                            images={formData.images}
+                            videos={formData.videos}
+                            onImagesChange={(images) => setFormData({ ...formData, images })}
+                            onVideosChange={(videos) => setFormData({ ...formData, videos })}
+                            folder="articles"
+                        />
 
                         <div>
                             <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'excerpt')}</label>

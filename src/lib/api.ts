@@ -60,9 +60,32 @@ function parseTranslations(data: unknown): { ar: string; en: string; fr: string 
 }
 
 /**
+ * Parse array fields from database (handles JSONB arrays)
+ */
+function parseArrayField(data: unknown): string[] {
+    if (!data) return [];
+    if (Array.isArray(data)) return data.map(String);
+    if (typeof data === 'string') {
+        try {
+            const parsed = JSON.parse(data);
+            return Array.isArray(parsed) ? parsed.map(String) : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
+/**
  * Map database row to Article type
  */
 function mapArticle(row: any): Article {
+    const legacyImage = row.image || '';
+    const images = parseArrayField(row.images);
+
+    // If no images array but we have legacy image, use it as first image
+    const finalImages = images.length > 0 ? images : (legacyImage ? [legacyImage] : []);
+
     return {
         id: row.id,
         title: row.title || '',
@@ -74,7 +97,9 @@ function mapArticle(row: any): Article {
         category: row.category || '',
         author: row.author || '',
         date: row.date || '',
-        image: row.image || '',
+        image: legacyImage, // Keep for backward compatibility
+        images: finalImages, // New multi-image support
+        videos: parseArrayField(row.videos), // New video support
         featured: row.featured || false,
         source_language: (row.source_language as Language) || 'ar',
         created_at: row.created_at,
@@ -180,6 +205,8 @@ export const api = {
                 category: string;
                 author: string;
                 image?: string;
+                images?: string[];
+                videos?: string[];
                 featured?: boolean;
                 date?: string;
             },
@@ -190,10 +217,17 @@ export const api = {
             // Prepare data with translations
             const preparedData = await prepareArticleWithTranslations(article, sourceLanguage);
 
+            // Handle images - use images array if provided, otherwise use single image
+            const images = article.images?.slice(0, 10) || (article.image ? [article.image] : []);
+            const videos = article.videos?.slice(0, 5) || [];
+
             const { data, error } = await supabase
                 .from('articles')
                 .insert({
                     ...preparedData,
+                    image: images[0] || '', // Legacy field - first image
+                    images: images, // New multi-image field
+                    videos: videos, // New video field
                     date: article.date || new Date().toISOString().split('T')[0],
                 })
                 .select()
@@ -219,6 +253,8 @@ export const api = {
                 category: string;
                 author: string;
                 image: string;
+                images: string[];
+                videos: string[];
                 featured: boolean;
             }>,
             sourceLanguage: Language = 'ar',
@@ -227,6 +263,15 @@ export const api = {
             const supabase = getAuthenticatedClient();
 
             let updateData: any = { ...article };
+
+            // Handle images and videos
+            if (article.images !== undefined) {
+                updateData.images = article.images.slice(0, 10);
+                updateData.image = article.images[0] || ''; // Keep legacy field in sync
+            }
+            if (article.videos !== undefined) {
+                updateData.videos = article.videos.slice(0, 5);
+            }
 
             // Retranslate if content fields changed
             if (retranslate && (article.title || article.excerpt || article.content)) {

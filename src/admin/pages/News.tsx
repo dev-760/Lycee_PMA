@@ -24,17 +24,18 @@ import {
   Shield,
   Building2,
   Users,
-  Upload,
   Globe,
   Sparkles,
   Loader2,
+  Image as ImageIcon,
+  Video,
 } from 'lucide-react';
 import AdminLayout from '@/admin/components/Layout';
 import RichTextEditor from '@/admin/components/RichTextEditor';
+import MediaUploader from '@/admin/components/MediaUploader';
 import { useAdmin } from '@/admin/context/Context';
 import { useLanguage } from '@/i18n';
 import { useToast } from '@/hooks/use-toast';
-import { uploadImage, validateImageFile } from '@/lib/storage';
 
 // News categories - all news types
 const NEWS_CATEGORIES = {
@@ -64,7 +65,6 @@ const AdminNews = () => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<Article | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Get categories for current language
   const categories = NEWS_CATEGORIES[language as keyof typeof NEWS_CATEGORIES] || NEWS_CATEGORIES.en;
@@ -75,7 +75,8 @@ const AdminNews = () => {
     content: '',
     category: 'أخبار المؤسسة',
     author: 'الإدارة',
-    image: '',
+    images: [] as string[],
+    videos: [] as string[],
     source_language: 'ar' as Language,
   });
 
@@ -138,39 +139,6 @@ const AdminNews = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      toast({
-        title: t('common', 'error'),
-        description: validation.error,
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setUploadingImage(true);
-    try {
-      const url = await uploadImage(file, 'news');
-      setFormData({ ...formData, image: url });
-      toast({
-        title: language === 'ar' ? 'تم رفع الصورة' : language === 'fr' ? 'Image téléchargée' : 'Image uploaded'
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: t('common', 'error'),
-        description: 'Failed to upload image',
-        variant: 'destructive'
-      });
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const openNewModal = () => {
     if (!hasPermission('canCreate')) {
       toast({
@@ -188,7 +156,8 @@ const AdminNews = () => {
       content: '',
       category: 'أخبار المؤسسة',
       author: 'الإدارة',
-      image: '',
+      images: [],
+      videos: [],
       source_language: language, // Default to current UI language
     });
     setIsModalOpen(true);
@@ -207,13 +176,25 @@ const AdminNews = () => {
     setEditingNews(item);
     // Load content in source language for editing
     const sourceLang = item.source_language || 'ar';
+
+    // Build images array from legacy image + new images array
+    const allImages: string[] = [];
+    if (item.image) allImages.push(item.image);
+    if (item.images && item.images.length > 0) {
+      // Add any images not already in the array
+      item.images.forEach(img => {
+        if (!allImages.includes(img)) allImages.push(img);
+      });
+    }
+
     setFormData({
       title: item.title_translations?.[sourceLang] || item.title,
       excerpt: item.excerpt_translations?.[sourceLang] || item.excerpt,
       content: item.content_translations?.[sourceLang] || item.content || '',
       category: item.category,
       author: item.author,
-      image: item.image,
+      images: allImages,
+      videos: item.videos || [],
       source_language: sourceLang,
     });
     setIsModalOpen(true);
@@ -224,6 +205,9 @@ const AdminNews = () => {
     setSaving(true);
 
     try {
+      // Use the first image as the main image for backward compatibility
+      const mainImage = formData.images[0] || '';
+
       if (editingNews) {
         // Update with re-translation
         const updated = await api.articles.update(
@@ -234,7 +218,9 @@ const AdminNews = () => {
             content: formData.content,
             category: formData.category,
             author: formData.author,
-            image: formData.image,
+            image: mainImage,
+            images: formData.images,
+            videos: formData.videos,
           },
           formData.source_language,
           true // retranslate
@@ -257,7 +243,9 @@ const AdminNews = () => {
             content: formData.content,
             category: formData.category,
             author: formData.author,
-            image: formData.image,
+            image: mainImage,
+            images: formData.images,
+            videos: formData.videos,
             featured: false,
           },
           formData.source_language
@@ -382,85 +370,94 @@ const AdminNews = () => {
         </select>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+      )}
+
       {/* News Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredNews.map(item => {
-          const category = getCategoryInfo(item.category);
-          const CategoryIcon = category.icon;
-          return (
-            <div key={item.id} className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
-              {/* Image */}
-              {item.image ? (
-                <img src={item.image} alt={getContentWithFallback(item.title_translations, item.title)} className="w-full h-40 object-cover" />
-              ) : (
-                <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                  <Newspaper className="w-12 h-12 text-blue-300" />
-                </div>
-              )}
+      {!loading && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredNews.map(item => {
+            const category = getCategoryInfo(item.category);
+            const CategoryIcon = category.icon;
+            return (
+              <div key={item.id} className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
+                {/* Image */}
+                {item.image ? (
+                  <img src={item.image} alt={getContentWithFallback(item.title_translations, item.title)} className="w-full h-40 object-cover" />
+                ) : (
+                  <div className="w-full h-40 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                    <Newspaper className="w-12 h-12 text-blue-300" />
+                  </div>
+                )}
 
-              <div className="p-5">
-                {/* Category badge */}
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 ${category.color === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                  }`}>
-                  <CategoryIcon className="w-3.5 h-3.5" />
-                  {category.label}
-                </div>
+                <div className="p-5">
+                  {/* Category badge */}
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 ${category.color === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                    }`}>
+                    <CategoryIcon className="w-3.5 h-3.5" />
+                    {category.label}
+                  </div>
 
-                {/* Title - Multilingual */}
-                <h3 className="font-bold text-charcoal text-lg mb-2 line-clamp-2">
-                  {getContentWithFallback(item.title_translations, item.title)}
-                </h3>
+                  {/* Title - Multilingual */}
+                  <h3 className="font-bold text-charcoal text-lg mb-2 line-clamp-2">
+                    {getContentWithFallback(item.title_translations, item.title)}
+                  </h3>
 
-                {/* Excerpt - Multilingual */}
-                <p className="text-slate text-sm mb-3 line-clamp-2">
-                  {getContentWithFallback(item.excerpt_translations, item.excerpt)}
-                </p>
+                  {/* Excerpt - Multilingual */}
+                  <p className="text-slate text-sm mb-3 line-clamp-2">
+                    {getContentWithFallback(item.excerpt_translations, item.excerpt)}
+                  </p>
 
-                {/* Meta */}
-                <div className="flex items-center justify-between text-xs text-slate mb-4">
-                  <span>{item.author}</span>
-                  <span className="flex items-center gap-1">
-                    <Globe className="w-3 h-3" />
-                    {LANGUAGE_NAMES[item.source_language]}
-                  </span>
-                </div>
+                  {/* Meta */}
+                  <div className="flex items-center justify-between text-xs text-slate mb-4">
+                    <span>{item.author}</span>
+                    <span className="flex items-center gap-1">
+                      <Globe className="w-3 h-3" />
+                      {LANGUAGE_NAMES[item.source_language]}
+                    </span>
+                  </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                  <a
-                    href={`/article/${item.id}`}
-                    target="_blank"
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    title={t('articles', 'view')}
-                  >
-                    <Eye className="w-4 h-4 text-slate" />
-                  </a>
-                  {hasPermission('canEdit') && (
-                    <button
-                      onClick={() => openEditModal(item)}
-                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                      title={t('common', 'edit')}
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                    <a
+                      href={`/article/${item.id}`}
+                      target="_blank"
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      title={t('articles', 'view')}
                     >
-                      <Edit2 className="w-4 h-4 text-blue-500" />
-                    </button>
-                  )}
-                  {hasPermission('canDelete') && (
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      title={t('common', 'delete')}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </button>
-                  )}
+                      <Eye className="w-4 h-4 text-slate" />
+                    </a>
+                    {hasPermission('canEdit') && (
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                        title={t('common', 'edit')}
+                      >
+                        <Edit2 className="w-4 h-4 text-blue-500" />
+                      </button>
+                    )}
+                    {hasPermission('canDelete') && (
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        title={t('common', 'delete')}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {filteredNews.length === 0 && (
+      {!loading && filteredNews.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl shadow-card">
           <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-slate">{t('news', 'noNews')}</p>
@@ -551,45 +548,14 @@ const AdminNews = () => {
               </div>
             </div>
 
-            {/* Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">
-                {getLocal('newsImage')}
-              </label>
-              <div className="flex gap-4 items-start">
-                <div className="flex-1">
-                  <label className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
-                    {uploadingImage ? (
-                      <span className="text-slate">{getLocal('uploading')}</span>
-                    ) : (
-                      <>
-                        <Upload className="w-6 h-6 text-gray-400" />
-                        <span className="text-slate">{getLocal('clickUpload')}</span>
-                      </>
-                    )}
-                  </label>
-                  <input
-                    type="url"
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none mt-2"
-                    placeholder={getLocal('orEnterUrl')}
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  />
-                </div>
-                {formData.image && (
-                  <div className="w-32 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Media Upload - Images & Videos */}
+            <MediaUploader
+              images={formData.images}
+              videos={formData.videos}
+              onImagesChange={(images) => setFormData({ ...formData, images })}
+              onVideosChange={(videos) => setFormData({ ...formData, videos })}
+              folder="news"
+            />
 
             <div>
               <label className="block text-sm font-medium text-charcoal mb-2">{t('articles', 'excerpt')}</label>

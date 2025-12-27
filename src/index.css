@@ -89,36 +89,6 @@
     --sidebar-border: 210 50% 20%;
     --sidebar-ring: 42 50% 53%;
   }
-
-  .dark {
-    --background: 210 30% 8%;
-    --foreground: 36 17% 93%;
-
-    --card: 210 25% 12%;
-    --card-foreground: 36 17% 93%;
-
-    --popover: 210 25% 12%;
-    --popover-foreground: 36 17% 93%;
-
-    --primary: 42 50% 53%;
-    --primary-foreground: 210 30% 8%;
-
-    --secondary: 210 20% 18%;
-    --secondary-foreground: 36 17% 93%;
-
-    --muted: 210 20% 15%;
-    --muted-foreground: 36 10% 65%;
-
-    --accent: 210 40% 30%;
-    --accent-foreground: 36 17% 93%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 36 17% 93%;
-
-    --border: 210 20% 18%;
-    --input: 210 20% 18%;
-    --ring: 42 50% 53%;
-  }
 }
 
 @layer base {
@@ -142,11 +112,24 @@
     @apply bg-background text-foreground font-tajawal antialiased;
   }
 
-  /* Dark mode body styles */
-  .dark body,
-  html.dark body {
-    background-color: hsl(210 30% 8%);
-    color: hsl(36 17% 93%);
+  /* Ensure all inputs have proper text color and background */
+  input,
+  textarea,
+  select {
+    color: #2B2B2B !important;
+    background-color: #ffffff !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
   }
 }
 

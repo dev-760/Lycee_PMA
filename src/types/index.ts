@@ -51,6 +51,13 @@ export function createMultilingualText(
 // ARTICLE TYPES
 // ===========================================
 
+/** Media item for images and videos */
+export interface MediaItem {
+    url: string;
+    type: 'image' | 'video';
+    thumbnail?: string; // For videos, optional thumbnail
+}
+
 export interface Article {
     id: number;
     // Legacy fields (for backward compatibility during migration)
@@ -65,7 +72,10 @@ export interface Article {
     category: string;
     author: string;
     date: string;
-    image: string;
+    // Media fields
+    image: string; // Legacy single image (kept for backward compatibility)
+    images: string[]; // Up to 10 images
+    videos: string[]; // Video URLs
     featured?: boolean;
     source_language: Language;
     created_at?: string;
@@ -78,7 +88,9 @@ export interface ArticleInput {
     content?: string;
     category: string;
     author: string;
-    image?: string;
+    image?: string; // Legacy single image
+    images?: string[]; // Up to 10 images
+    videos?: string[]; // Video URLs
     featured?: boolean;
     source_language?: Language;
 }
