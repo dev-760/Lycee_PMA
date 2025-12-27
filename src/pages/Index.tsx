@@ -8,12 +8,13 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { BookOpen, Newspaper, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/i18n";
 import { api } from "@/lib/api";
+import type { Article } from "@/lib/api";
 
 type PageData = {
-  mainArticle: any | null;
-  weeklyNews: any | null;
-  articles: any[];
-  adminNews: any[];
+  mainArticle: Article | null;
+  weeklyNews: Article | null;
+  articles: Article[];
+  adminNews: Article[];
 };
 
 const Index = () => {
@@ -35,21 +36,21 @@ const Index = () => {
 
         if (Array.isArray(allArticles) && allArticles.length > 0) {
           const main =
-            allArticles.find((a: any) => a.featured) ?? allArticles[0];
+            allArticles.find((a: Article) => a.featured) ?? allArticles[0];
 
           const weekly =
             allArticles.find(
-              (a: any) =>
+              (a: Article) =>
                 a.category === "رياضة" || a.category === "Sports"
             ) ?? null;
 
           const regularArticles = allArticles.filter(
-            (a: any) =>
+            (a: Article) =>
               a.category === "مقالات" || a.category === "Articles"
           );
 
           const news = allArticles.filter(
-            (a: any) =>
+            (a: Article) =>
               a.category === "أخبار الإدارة" ||
               a.category === "Administration News"
           );
@@ -211,7 +212,7 @@ const Index = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      {data.articles.slice(0, 2).map((article: any) => (
+                      {data.articles.slice(0, 2).map((article: Article) => (
                         <ArticleCard key={article.id} article={article} />
                       ))}
                     </div>
@@ -237,7 +238,7 @@ const Index = () => {
                     </div>
 
                     <div className="space-y-4">
-                      {data.adminNews.map((article: any) => (
+                      {data.adminNews.map((article: Article) => (
                         <ArticleCard
                           key={article.id}
                           article={article}

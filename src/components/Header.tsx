@@ -111,7 +111,7 @@ const Header = () => {
 
       {/* Main Header - Ivory Background */}
       <div
-        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-gray-200`}
+        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-gray-200/60 backdrop-blur-sm`}
         style={{ backgroundColor: '#F4F1EC' }}
       >
         <div className="container">
@@ -119,10 +119,11 @@ const Header = () => {
             {/* Logo & Title */}
             <Link to="/" className="flex items-center gap-4 group">
               <div className="relative">
+                <div className="absolute inset-0 bg-gold/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <img
                   src="/logo.png"
                   alt="Lycée Prince Moulay Abdellah"
-                  className="h-14 md:h-16 w-auto transition-transform duration-300 group-hover:scale-105"
+                  className="relative h-14 md:h-16 w-auto transition-transform duration-300 group-hover:scale-105 drop-shadow-md"
                 />
               </div>
             </Link>

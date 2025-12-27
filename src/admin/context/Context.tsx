@@ -8,6 +8,7 @@ import {
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole as AuthUserRole } from '@/api/auth.types';
+import { useLanguage } from '@/i18n';
 
 // Auto-logout configuration (in milliseconds)
 const AUTO_LOGOUT_TIMEOUT = 30 * 60 * 1000; // 30 minutes
@@ -127,6 +128,7 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
     // Integration with Global AuthContext
     const { user: authUser, login: authLogin, logout: authLogout } = useAuth();
+    const { language } = useLanguage();
     const [users, setUsers] = useState<AdminUser[]>([]);
 
     // Auto-logout state
@@ -395,30 +397,55 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
             refreshSession: resetActivityTimer,
             extendSession,
         }}>
-            {/* Session Warning Modal */}
+            {/* Enhanced Session Warning Modal */}
             {showLogoutWarning && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 animate-in fade-in zoom-in duration-300">
-                        <div className="text-center">
-                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-4 border-2 border-amber-200 animate-scale-in relative overflow-hidden">
+                        {/* Animated background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 opacity-50" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                        <div className="relative z-10">
+                            <div className="text-center">
+                                <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse">
+                                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-bold text-charcoal mb-3">
+                                    {language === 'ar' ? 'تحذير انتهاء الجلسة' : language === 'fr' ? 'Avertissement d\'expiration de session' : 'Session Timeout Warning'}
+                                </h3>
+                                <p className="text-slate mb-2 text-lg">
+                                    {language === 'ar' 
+                                        ? 'سيتم تسجيل خروجك تلقائياً خلال' 
+                                        : language === 'fr' 
+                                        ? 'Vous serez déconnecté automatiquement dans'
+                                        : 'You will be automatically logged out in'}
+                                </p>
+                                <div className="my-6">
+                                    <div className="inline-flex items-center justify-center gap-2 bg-red-50 border-2 border-red-200 rounded-2xl px-6 py-4">
+                                        <span className="text-4xl font-bold text-red-600 tabular-nums">
+                                            {Math.floor(timeUntilLogout / 60000)}:{String(Math.floor((timeUntilLogout % 60000) / 1000)).padStart(2, '0')}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-slate mb-6">
+                                    {language === 'ar' 
+                                        ? 'انقر أدناه للبقاء متصلاً' 
+                                        : language === 'fr' 
+                                        ? 'Cliquez ci-dessous pour rester connecté'
+                                        : 'Click below to stay logged in'}
+                                </p>
+                                <button
+                                    onClick={extendSession}
+                                    className="w-full bg-gradient-to-r from-teal via-teal-light to-teal text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-lg"
+                                >
+                                    {language === 'ar' 
+                                        ? 'البقاء متصلاً' 
+                                        : language === 'fr' 
+                                        ? 'Rester connecté'
+                                        : 'Stay Logged In'}
+                                </button>
                             </div>
-                            <h3 className="text-xl font-bold text-charcoal mb-2">Session Timeout Warning</h3>
-                            <p className="text-slate mb-4">
-                                You will be automatically logged out in{' '}
-                                <span className="font-bold text-red-600">
-                                    {Math.floor(timeUntilLogout / 60000)}:{String(Math.floor((timeUntilLogout % 60000) / 1000)).padStart(2, '0')}
-                                </span>
-                            </p>
-                            <p className="text-sm text-slate mb-6">Click below to stay logged in.</p>
-                            <button
-                                onClick={extendSession}
-                                className="w-full bg-gradient-to-r from-teal to-teal-light text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all"
-                            >
-                                Stay Logged In
-                            </button>
                         </div>
                     </div>
                 </div>
