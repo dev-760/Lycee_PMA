@@ -80,8 +80,8 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-4 dark:bg-gray-900/50">
-            <Card className="w-full max-w-md border-0 shadow-xl ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded-xl">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-4">
+            <Card className="w-full max-w-md border-0 shadow-xl ring-1 ring-gray-200 sm:rounded-xl">
                 <CardHeader className="space-y-1 text-center">
                     <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
                     <CardDescription>

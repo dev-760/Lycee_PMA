@@ -37,7 +37,7 @@ const LoadingSpinner = ({
     const SpinnerVariant = () => (
         <div className="relative">
             {/* Outer ring */}
-            <div className={`${sizeClasses[size]} rounded-full border-4 border-gray-200 dark:border-gray-700`} />
+            <div className={`${sizeClasses[size]} rounded-full border-4 border-gray-200`} />
 
             {/* Animated spinning arc */}
             <div
@@ -117,7 +117,7 @@ const LoadingSpinner = ({
 
                 {/* Loading text with shimmer effect */}
                 <div className="relative overflow-hidden">
-                    <p className="text-lg font-semibold text-navy dark:text-gray-200">
+                    <p className="text-lg font-semibold text-navy">
                         {displayText}
                     </p>
                     {/* Shimmer overlay */}

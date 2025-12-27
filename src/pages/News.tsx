@@ -1,23 +1,47 @@
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Newspaper } from "lucide-react";
 import { useLanguage } from "@/i18n";
-
-type Article = {
-  id: string | number;
-  title: string;
-  description?: string;
-  image?: string;
-  date?: string;
-};
+import { api } from "@/lib/api";
+import type { Article } from "@/lib/api";
 
 const News = () => {
   const { t, language } = useLanguage();
+  const [allNews, setAllNews] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ No mock data – safe for production deploy
-  const allNews: Article[] = [];
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const allArticles = await api.articles.getAll();
+        // Filter for all news categories
+        const newsCategories = [
+          'أخبار المؤسسة',
+          'أخبار الإدارة',
+          'Institution News',
+          'Administration News',
+          'Actualités de l\'institution',
+          'Actualités de l\'administration'
+        ];
+        const newsItems = (allArticles || []).filter((item) => {
+          const category = item.category || '';
+          return newsCategories.includes(category);
+        });
+        setAllNews(newsItems);
+      } catch (error) {
+        console.error("Failed to fetch news:", error);
+        setAllNews([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
 
   const pageContent = {
     ar: {
@@ -43,6 +67,10 @@ const News = () => {
   };
 
   const content = pageContent[language];
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <>

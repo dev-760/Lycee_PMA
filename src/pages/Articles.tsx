@@ -1,23 +1,46 @@
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { BookOpen } from "lucide-react";
 import { useLanguage } from "@/i18n";
-
-type Article = {
-  id: string | number;
-  title: string;
-  description?: string;
-  image?: string;
-  category?: string;
-};
+import { api } from "@/lib/api";
+import type { Article } from "@/lib/api";
 
 const Articles = () => {
   const { t, language } = useLanguage();
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ No mock data – safe for production
-  const articles: Article[] = [];
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const allArticles = await api.articles.getAll();
+        // Filter out news categories to show only articles
+        const articlesOnly = (allArticles || []).filter((item) => {
+          const category = item.category || '';
+          // Include article categories and exclude news categories
+          return (
+            category === "مقالات" ||
+            category === "Articles" ||
+            (!category.includes("أخبار") &&
+              !category.includes("News") &&
+              !category.includes("Actualités"))
+          );
+        });
+        setArticles(articlesOnly);
+      } catch (error) {
+        console.error("Failed to fetch articles:", error);
+        setArticles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
 
   const pageContent = {
     ar: {
@@ -43,6 +66,10 @@ const Articles = () => {
   };
 
   const content = pageContent[language];
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <>

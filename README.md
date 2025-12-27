@@ -16,9 +16,9 @@ A modern, multilingual school newspaper website for Lycée Prince Moulay Abdella
 
 ### 📱 Modern UI/UX
 - **Responsive Design**: Desktop, tablet, and mobile
-- **Dark Mode**: Toggle between light and dark themes
 - **Premium Animations**: Smooth transitions and micro-interactions
 - **RTL Support**: Full right-to-left support for Arabic
+- **Light Theme**: Clean, professional academic design
 
 ### 📝 Content Management
 - **Articles**: Create and manage articles with rich text editor
