@@ -22,7 +22,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
   };
   if (variant === "featured") {
     return (
-      <article className="bg-white rounded-2xl overflow-hidden shadow-card card-hover group border border-gray-100/80">
+      <article className="bg-black/40 rounded-2xl overflow-hidden shadow-card card-hover group border border-white/10">
         <Link to={`/article/${article.id}`}>
           <div className="relative h-64 md:h-80 overflow-hidden">
             <img
@@ -33,7 +33,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-transparent" />
 
             {/* Featured badge */}
-            <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} flex items-center gap-1 bg-gold text-charcoal px-3 py-1.5 rounded-full text-xs font-bold shadow-lg`}>
+            <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} flex items-center gap-1 bg-gold text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-lg`}>
               <Sparkles className="w-3 h-3" />
               {language === 'ar' ? 'مقال مميز' : language === 'fr' ? 'Article vedette' : 'Featured'}
             </div>
@@ -67,7 +67,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
 
   if (variant === "compact") {
     return (
-      <article className="bg-white rounded-xl overflow-hidden shadow-card card-hover flex gap-4 p-4 group border border-gray-100/80">
+      <article className="bg-black/40 rounded-xl overflow-hidden shadow-card card-hover flex gap-4 p-4 group border border-white/10">
         <Link to={`/article/${article.id}`} className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden relative">
           <img
             src={article.image}
@@ -93,7 +93,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
   }
 
   return (
-    <article className="bg-white rounded-2xl overflow-hidden shadow-card card-hover group border border-gray-100/80">
+    <article className="bg-black/40 rounded-2xl overflow-hidden shadow-card card-hover group border border-white/10">
       <Link to={`/article/${article.id}`}>
         <div className="relative h-48 overflow-hidden">
           <img
@@ -116,7 +116,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
         <p className="text-slate text-sm mb-4 line-clamp-2 leading-relaxed">
           {excerpt}
         </p>
-        <div className="flex items-center justify-between text-xs text-slate mb-5 pb-4 border-b border-gray-100">
+        <div className="flex items-center justify-between text-xs text-slate mb-5 pb-4 border-b border-white/10">
           <span className="flex items-center gap-1.5">
             <User className="w-3.5 h-3.5 text-teal/70" />
             {article.author}

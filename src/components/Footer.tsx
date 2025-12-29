@@ -20,9 +20,9 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer style={{ backgroundColor: '#0F2A44' }} className="text-white">
+    <footer style={{ backgroundColor: '#000000' }} className="text-white">
       {/* Gold Accent Line at Top */}
-      <div style={{ height: '3px', backgroundColor: '#C6A24A' }}></div>
+      <div style={{ height: '3px', backgroundColor: '#D4AF37' }}></div>
 
       {/* Main Footer */}
       <div className="container py-16">
@@ -45,7 +45,7 @@ const Footer = () => {
                 href="#"
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
                 style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#D4AF37'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
               >
                 <Facebook className="w-5 h-5" />
@@ -54,7 +54,7 @@ const Footer = () => {
                 href="#"
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
                 style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#D4AF37'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
               >
                 <Twitter className="w-5 h-5" />
@@ -63,7 +63,7 @@ const Footer = () => {
                 href="#"
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
                 style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#D4AF37'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
               >
                 <Instagram className="w-5 h-5" />
@@ -72,7 +72,7 @@ const Footer = () => {
                 href="#"
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
                 style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#D4AF37'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
               >
                 <Youtube className="w-5 h-5" />
@@ -83,7 +83,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div>
             <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C6A24A' }}></span>
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D4AF37' }}></span>
               {t('footer', 'quickLinks')}
             </h4>
             <ul className="space-y-3">
@@ -92,12 +92,12 @@ const Footer = () => {
                   <Link
                     to={link.href}
                     className="text-white/70 transition-colors flex items-center gap-2 group"
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#C6A24A'}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#D4AF37'}
                     onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
                   >
                     <span
                       className="w-0 group-hover:w-2 h-0.5 transition-all"
-                      style={{ backgroundColor: '#C6A24A' }}
+                      style={{ backgroundColor: '#D4AF37' }}
                     ></span>
                     {link.name}
                   </Link>
@@ -109,7 +109,7 @@ const Footer = () => {
           {/* Contact Info */}
           <div>
             <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C6A24A' }}></span>
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D4AF37' }}></span>
               {t('footer', 'contactUs')}
             </h4>
             <ul className="space-y-4">
@@ -118,7 +118,7 @@ const Footer = () => {
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                 >
-                  <MapPin className="w-5 h-5" style={{ color: '#C6A24A' }} />
+                  <MapPin className="w-5 h-5" style={{ color: '#D4AF37' }} />
                 </div>
                 <span className="text-white/70">{t('footer', 'address')}</span>
               </li>
@@ -127,7 +127,7 @@ const Footer = () => {
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                 >
-                  <Phone className="w-5 h-5" style={{ color: '#C6A24A' }} />
+                  <Phone className="w-5 h-5" style={{ color: '#D4AF37' }} />
                 </div>
                 <span className="text-white/70" dir="ltr">+212 5XX-XXXXXX</span>
               </li>
@@ -136,7 +136,7 @@ const Footer = () => {
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                 >
-                  <Mail className="w-5 h-5" style={{ color: '#C6A24A' }} />
+                  <Mail className="w-5 h-5" style={{ color: '#D4AF37' }} />
                 </div>
                 <span className="text-white/70">info@lycee-pma.ma</span>
               </li>
@@ -154,10 +154,10 @@ const Footer = () => {
           <button
             onClick={scrollToTop}
             className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg"
-            style={{ backgroundColor: '#C6A24A', boxShadow: '0 4px 15px rgba(198, 162, 74, 0.3)' }}
+            style={{ backgroundColor: '#D4AF37', boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
             aria-label="العودة للأعلى"
           >
-            <ArrowUp className="w-5 h-5 text-white" />
+            <ArrowUp className="w-5 h-5 text-black" />
           </button>
         </div>
       </div>

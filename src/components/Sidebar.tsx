@@ -89,7 +89,7 @@ const Sidebar = ({ position }: SidebarProps) => {
             {announcements.map((a) => (
               <li
                 key={a.id}
-                className="p-4 rounded-xl hover:bg-gray-50 transition"
+                className="p-4 rounded-xl hover:bg-white/5 transition"
               >
                 <div className="flex items-start gap-3">
                   {a.urgent && (
@@ -122,12 +122,12 @@ const Sidebar = ({ position }: SidebarProps) => {
       <AbsentTeachers />
 
       {/* Contact box */}
-      <div className="rounded-2xl shadow-card bg-gradient-to-br from-teal to-teal-light p-6 text-white">
+      <div className="rounded-2xl shadow-card bg-gradient-to-br from-navy to-navy-light p-6 text-white">
         <h3 className="font-bold text-lg mb-2">{t.stayInformed}</h3>
         <p className="text-sm mb-4">{t.stayInformedDesc}</p>
         <a
           href="/contact"
-          className="block text-center bg-white text-teal font-semibold py-3 rounded-xl"
+          className="block text-center bg-gold text-black font-semibold py-3 rounded-xl hover:bg-gold-light transition-colors"
         >
           {t.contactUs}
         </a>

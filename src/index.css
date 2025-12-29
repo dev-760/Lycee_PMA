@@ -7,87 +7,88 @@
 
 @layer base {
   :root {
-    /* New Color Palette - Academic & Professional */
-    /* Primary: Deep Royal Blue #0F2A44 */
-    /* Accent: Gold/Brass #C6A24A */
-    /* Background: Ivory/Off-White #F4F1EC */
-    /* Text: Charcoal #2B2B2B */
+    /* Brand Color Palette - Academic Newspaper Style */
+    /* Primary background: Deep black #000000 */
+    /* Primary accent: Metallic gold #D4AF37 */
+    /* Secondary accent: Deep academic blue #0F2A44 */
+    /* Text on dark: Off-white #F5F5F5 */
 
-    --background: 36 17% 95%;
-    /* #F4F1EC */
-    --foreground: 0 0% 17%;
-    /* #2B2B2B */
+    --background: 0 0% 0%;
+    /* #000000 - Deep black */
+    --foreground: 0 0% 96%;
+    /* #F5F5F5 - Off-white */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 17%;
+    --card: 0 0% 8%;
+    /* Dark gray for cards on black */
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 17%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 96%;
 
-    /* Deep Royal Blue Primary */
+    /* Deep Academic Blue Primary */
     --primary: 210 64% 16%;
     /* #0F2A44 */
-    --primary-foreground: 36 17% 95%;
+    --primary-foreground: 0 0% 96%;
 
-    /* Warm Gray Secondary */
-    --secondary: 36 17% 90%;
-    --secondary-foreground: 210 64% 16%;
+    /* Dark Gray Secondary */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 36 10% 88%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    /* Gold Accent */
-    --accent: 42 50% 53%;
-    /* #C6A24A */
-    --accent-foreground: 0 0% 100%;
+    /* Metallic Gold Accent */
+    --accent: 45 65% 52%;
+    /* #D4AF37 - Metallic gold */
+    --accent-foreground: 0 0% 0%;
 
-    /* Warm Gold Highlight */
-    --highlight: 42 50% 53%;
-    --highlight-foreground: 210 64% 16%;
+    /* Gold Highlight */
+    --highlight: 45 65% 52%;
+    --highlight-foreground: 0 0% 0%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 36 10% 85%;
-    --input: 36 10% 85%;
-    --ring: 42 50% 53%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 45 65% 52%;
 
     --radius: 0.75rem;
 
     /* Custom Colors */
     --navy: 210 64% 16%;
-    /* #0F2A44 */
+    /* #0F2A44 - Deep academic blue */
     --navy-light: 210 50% 25%;
-    --charcoal: 0 0% 17%;
-    /* #2B2B2B */
-    --charcoal-light: 0 0% 30%;
+    --charcoal: 0 0% 96%;
+    /* Off-white for text on black */
+    --charcoal-light: 0 0% 85%;
     --teal: 210 64% 16%;
     /* Using navy as primary */
     --teal-light: 210 50% 25%;
     --teal-dark: 210 70% 12%;
-    --gold: 42 50% 53%;
-    /* #C6A24A */
-    --gold-light: 42 45% 63%;
-    --slate: 0 0% 45%;
-    --warm-gray: 36 10% 60%;
-    --ivory: 36 17% 95%;
-    /* #F4F1EC */
+    --gold: 45 65% 52%;
+    /* #D4AF37 - Metallic gold */
+    --gold-light: 45 60% 62%;
+    --slate: 0 0% 65%;
+    --warm-gray: 0 0% 40%;
+    --ivory: 0 0% 8%;
+    /* Dark gray for components */
 
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(210 64% 16% / 0.06);
-    --shadow-card: 0 2px 15px -3px hsl(210 64% 16% / 0.08);
-    --shadow-hover: 0 12px 35px -8px hsl(210 64% 16% / 0.12);
-    --shadow-nav: 0 4px 30px -4px hsl(210 64% 16% / 0.1);
+    /* Shadows - adjusted for dark theme */
+    --shadow-soft: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 2px 15px -3px hsl(0 0% 0% / 0.4);
+    --shadow-hover: 0 12px 35px -8px hsl(45 65% 52% / 0.2);
+    --shadow-nav: 0 4px 30px -4px hsl(0 0% 0% / 0.5);
 
     /* Sidebar */
-    --sidebar-background: 210 64% 16%;
-    --sidebar-foreground: 36 17% 95%;
-    --sidebar-primary: 42 50% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 50% 22%;
-    --sidebar-accent-foreground: 36 17% 95%;
-    --sidebar-border: 210 50% 20%;
-    --sidebar-ring: 42 50% 53%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 45 65% 52%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 45 65% 52%;
   }
 
 }
@@ -141,48 +142,50 @@
   }
 
   .glass-nav {
-    @apply bg-white/95 backdrop-blur-md;
+    @apply bg-black/95 backdrop-blur-md;
   }
 
   /* Premium Button Styles - Following new color scheme */
   .btn-premium {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform;
-    background-color: #0F2A44;
-    color: #F4F1EC;
+    background-color: #D4AF37;
+    color: #000000;
     @apply hover:shadow-lg hover:-translate-y-0.5;
     @apply active:translate-y-0;
   }
 
   .btn-premium:hover {
-    border: 2px solid #C6A24A;
+    border: 2px solid #D4AF37;
+    background-color: #E5C158;
   }
 
   .btn-outline-premium {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300;
-    border: 2px solid #0F2A44;
-    color: #0F2A44;
+    border: 2px solid #D4AF37;
+    color: #D4AF37;
     background: transparent;
   }
 
   .btn-outline-premium:hover {
-    border-color: #C6A24A;
-    color: #C6A24A;
+    border-color: #E5C158;
+    color: #E5C158;
+    background-color: rgba(212, 175, 55, 0.1);
   }
 
   /* Navigation link hover effect */
   .nav-link {
     @apply relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300;
-    color: #0F2A44;
+    color: #F5F5F5;
   }
 
   .nav-link:hover {
-    color: #C6A24A;
+    color: #D4AF37;
   }
 
   .nav-link::after {
     content: '';
     @apply absolute bottom-0 left-1/2 w-0 h-0.5;
-    background: linear-gradient(to right, #C6A24A, #D4B35C);
+    background: linear-gradient(to right, #D4AF37, #E5C158);
     @apply transition-all duration-300 -translate-x-1/2;
   }
 
@@ -191,7 +194,7 @@
   }
 
   .nav-link-active {
-    color: #C6A24A;
+    color: #D4AF37;
   }
 
   .nav-link-active::after {
@@ -200,7 +203,7 @@
 
   /* Sidebar section styling */
   .sidebar-section {
-    @apply bg-white rounded-2xl shadow-card p-6 border border-gray-100/80;
+    @apply bg-black/40 rounded-2xl shadow-card p-6 border border-white/10;
     @apply transition-all duration-300 hover:shadow-hover;
   }
 
@@ -210,39 +213,39 @@
 
   .sidebar-title-bar {
     @apply w-1 h-6 rounded-full;
-    background: linear-gradient(to bottom, #C6A24A, #D4B35C);
+    background: linear-gradient(to bottom, #D4AF37, #E5C158);
   }
 
   .sidebar-title-text {
     @apply text-lg font-bold;
-    color: #0F2A44;
+    color: #F5F5F5;
   }
 
   /* Header styling */
   .header-primary {
-    background-color: #0F2A44;
-    color: #F4F1EC;
+    background-color: #000000;
+    color: #F5F5F5;
   }
 
   .header-accent-line {
     height: 3px;
-    background-color: #C6A24A;
+    background-color: #D4AF37;
   }
 
   /* Footer styling */
   .footer-primary {
-    background-color: #0F2A44;
-    color: #F4F1EC;
+    background-color: #000000;
+    color: #F5F5F5;
   }
 
   /* Link styling */
   .link-primary {
-    color: #0F2A44;
+    color: #F5F5F5;
     transition: color 0.3s ease;
   }
 
   .link-primary:hover {
-    color: #C6A24A;
+    color: #D4AF37;
   }
 }
 
@@ -327,15 +330,15 @@
 
   /* Gradient backgrounds with new colors */
   .bg-gradient-premium {
-    background: linear-gradient(to bottom right, #0F2A44, #163A5C, #0F2A44);
+    background: linear-gradient(to bottom right, #000000, #0A0A0A, #000000);
   }
 
   .bg-gradient-gold {
-    background: linear-gradient(to bottom right, #C6A24A, #D4B35C, #C6A24A);
+    background: linear-gradient(to bottom right, #D4AF37, #E5C158, #D4AF37);
   }
 
   .bg-gradient-warm {
-    background: linear-gradient(to bottom right, #F4F1EC, #FBF9F6, #F4F1EC);
+    background: linear-gradient(to bottom right, #000000, #0A0A0A, #000000);
   }
 
   /* Text colors */
@@ -344,11 +347,11 @@
   }
 
   .text-gold-accent {
-    color: #C6A24A;
+    color: #D4AF37;
   }
 
   .text-body {
-    color: #2B2B2B;
+    color: #F5F5F5;
   }
 
   /* Background colors */
@@ -357,11 +360,11 @@
   }
 
   .bg-gold-accent {
-    background-color: #C6A24A;
+    background-color: #D4AF37;
   }
 
   .bg-ivory {
-    background-color: #F4F1EC;
+    background-color: #000000;
   }
 }
 
@@ -372,7 +375,7 @@
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
-  color: #adb5bd;
+  color: #666666;
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -415,27 +418,27 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid #C6A24A;
+  border-left: 3px solid #D4AF37;
   padding-left: 1rem;
   margin-left: 0;
   margin-bottom: 0.75rem;
-  color: #666;
+  color: #CCCCCC;
   font-style: italic;
 }
 
 .ProseMirror hr {
   border: none;
-  border-top: 2px solid #e5e7eb;
+  border-top: 2px solid #333333;
   margin: 1.5rem 0;
 }
 
 .ProseMirror a {
-  color: #0F2A44;
+  color: #D4AF37;
   text-decoration: underline;
 }
 
 .ProseMirror a:hover {
-  color: #C6A24A;
+  color: #E5C158;
 }
 
 .ProseMirror img {
@@ -450,7 +453,7 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #0F2A44;
+  color: #F5F5F5;
 }
 
 .article-content h2 {
@@ -458,7 +461,7 @@
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: #0F2A44;
+  color: #F5F5F5;
 }
 
 .article-content h3 {
@@ -466,7 +469,7 @@
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #0F2A44;
+  color: #F5F5F5;
 }
 
 .article-content p {
@@ -486,24 +489,24 @@
 }
 
 .article-content blockquote {
-  border-left: 4px solid #C6A24A;
+  border-left: 4px solid #D4AF37;
   padding-left: 1.5rem;
   margin: 1.5rem 0;
-  color: #555;
+  color: #CCCCCC;
   font-style: italic;
-  background: #faf9f7;
+  background: #1A1A1A;
   padding: 1rem 1.5rem;
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
 .article-content a {
-  color: #0F2A44;
+  color: #D4AF37;
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .article-content a:hover {
-  color: #C6A24A;
+  color: #E5C158;
 }
 
 .article-content img {
@@ -516,6 +519,6 @@
 
 .article-content hr {
   border: none;
-  border-top: 2px solid #e5e7eb;
+  border-top: 2px solid #333333;
   margin: 2rem 0;
 }

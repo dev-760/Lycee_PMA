@@ -75,16 +75,16 @@ const Header = () => {
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 px-4 py-2 rounded-lg shadow-lg z-50"
-        style={{ backgroundColor: '#0F2A44', color: '#F4F1EC' }}
+        style={{ backgroundColor: '#000000', color: '#F5F5F5' }}
       >
         {t('nav', 'skipToContent')}
       </a>
 
-      {/* Top Bar - Deep Royal Blue */}
-      <div style={{ backgroundColor: '#0F2A44' }} className="py-2.5 border-b border-white/10">
+      {/* Top Bar - Deep Black */}
+      <div style={{ backgroundColor: '#000000' }} className="py-2.5 border-b border-white/10">
         <div className="container flex justify-between items-center">
-          <div className="flex items-center gap-2 text-sm" style={{ color: '#F4F1EC' }}>
-            <Calendar className="w-4 h-4" style={{ color: '#C6A24A' }} />
+          <div className="flex items-center gap-2 text-sm" style={{ color: '#F5F5F5' }}>
+            <Calendar className="w-4 h-4" style={{ color: '#D4AF37' }} />
             <span className="font-medium">{currentDate}</span>
           </div>
           <div className="hidden sm:flex items-center gap-3">
@@ -92,9 +92,9 @@ const Header = () => {
               to="/admin/login"
               className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer hover:opacity-80"
               style={{
-                color: '#C6A24A',
-                backgroundColor: 'rgba(198, 162, 74, 0.1)',
-                borderColor: 'rgba(198, 162, 74, 0.3)'
+                color: '#D4AF37',
+                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                borderColor: 'rgba(212, 175, 55, 0.3)'
               }}
               title={t('auth', 'controlPanel')}
             >
@@ -107,12 +107,12 @@ const Header = () => {
       </div>
 
       {/* Gold Accent Line */}
-      <div style={{ height: '3px', backgroundColor: '#C6A24A' }}></div>
+      <div style={{ height: '3px', backgroundColor: '#D4AF37' }}></div>
 
-      {/* Main Header - Ivory Background */}
+      {/* Main Header - Deep Black Background */}
       <div
-        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-gray-200/60 backdrop-blur-sm`}
-        style={{ backgroundColor: '#F4F1EC' }}
+        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-white/10 backdrop-blur-sm`}
+        style={{ backgroundColor: '#000000' }}
       >
         <div className="container">
           <div className="flex items-center justify-between">
@@ -137,16 +137,16 @@ const Header = () => {
                       to={link.href}
                       className={`relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300`}
                       style={{
-                        color: isActiveLink(link.href) ? '#C6A24A' : '#0F2A44'
+                        color: isActiveLink(link.href) ? '#D4AF37' : '#F5F5F5'
                       }}
                       onMouseEnter={(e) => {
                         if (!isActiveLink(link.href)) {
-                          e.currentTarget.style.color = '#C6A24A';
+                          e.currentTarget.style.color = '#D4AF37';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isActiveLink(link.href)) {
-                          e.currentTarget.style.color = '#0F2A44';
+                          e.currentTarget.style.color = '#F5F5F5';
                         }
                       }}
                     >
@@ -154,7 +154,7 @@ const Header = () => {
                       {isActiveLink(link.href) && (
                         <span
                           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-0.5 rounded-full"
-                          style={{ backgroundColor: '#C6A24A' }}
+                          style={{ backgroundColor: '#D4AF37' }}
                         />
                       )}
                     </Link>
@@ -167,8 +167,8 @@ const Header = () => {
             <button
               className="lg:hidden relative p-2.5 rounded-xl transition-all duration-300"
               style={{
-                backgroundColor: isMenuOpen ? '#0F2A44' : '#E8E5E0',
-                color: isMenuOpen ? '#F4F1EC' : '#0F2A44'
+                backgroundColor: isMenuOpen ? '#000000' : '#1A1A1A',
+                color: isMenuOpen ? '#F5F5F5' : '#F5F5F5'
               }}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="قائمة التنقل"
@@ -187,7 +187,7 @@ const Header = () => {
       <div
         className={`lg:hidden fixed inset-x-0 top-[140px] backdrop-blur-xl shadow-hover z-40 transition-all duration-300 ease-out ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
           }`}
-        style={{ backgroundColor: 'rgba(244, 241, 236, 0.98)' }}
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.98)' }}
       >
         <nav className="container py-6" role="navigation" aria-label="التنقل المحمول">
           <ul className="flex flex-col gap-2">
@@ -201,14 +201,14 @@ const Header = () => {
                   to={link.href}
                   className="flex items-center justify-between px-5 py-4 rounded-xl transition-all duration-300 font-semibold text-base"
                   style={{
-                    backgroundColor: isActiveLink(link.href) ? '#0F2A44' : 'transparent',
-                    color: isActiveLink(link.href) ? '#F4F1EC' : '#0F2A44'
+                    backgroundColor: isActiveLink(link.href) ? '#1A1A1A' : 'transparent',
+                    color: isActiveLink(link.href) ? '#D4AF37' : '#F5F5F5'
                   }}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <span>{link.name}</span>
                   {isActiveLink(link.href) && (
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C6A24A' }}></span>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#D4AF37' }}></span>
                   )}
                 </Link>
               </li>
@@ -216,9 +216,9 @@ const Header = () => {
           </ul>
 
           {/* Mobile Quick Info */}
-          <div className="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm" style={{ color: '#2B2B2B' }}>
-              <Calendar className="w-4 h-4" style={{ color: '#C6A24A' }} />
+          <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm" style={{ color: '#F5F5F5' }}>
+              <Calendar className="w-4 h-4" style={{ color: '#D4AF37' }} />
               <span>{currentDate}</span>
             </div>
             <div className="flex items-center gap-3">
@@ -232,7 +232,7 @@ const Header = () => {
       {isMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 backdrop-blur-sm z-30"
-          style={{ backgroundColor: 'rgba(15, 42, 68, 0.2)' }}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={() => setIsMenuOpen(false)}
           aria-hidden="true"
         />
