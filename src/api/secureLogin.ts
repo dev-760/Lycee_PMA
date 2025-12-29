@@ -52,15 +52,13 @@ export async function secureLogin(
             };
         }
 
-        // Log the full response for debugging (dev only)
-        if (import.meta.env.DEV) {
-            console.log("Edge Function response:", {
-                status: response.status,
-                statusText: response.statusText,
-                data: data,
-                dataKeys: data ? Object.keys(data) : null
-            });
-        }
+        // Log the full response for debugging
+        console.log("Edge Function response:", {
+            status: response.status,
+            statusText: response.statusText,
+            data: data,
+            dataKeys: data ? Object.keys(data) : null
+        });
 
         // Validate response structure
         if (!data || typeof data !== 'object') {
@@ -84,7 +82,7 @@ export async function secureLogin(
         if (data.success === true) {
             // Validate the response structure
             if (data.user && data.access_token) {
-                // Login success - role extracted from Edge Function
+                console.log("Login success - role from Edge Function:", data.user.role);
                 return data as AuthResponse;
             } else {
                 console.error("Success response missing required fields:", data);
@@ -134,10 +132,14 @@ export async function secureLogin(
                 userRole = 'user';
             }
 
-            // Log the role for debugging (dev only)
-            if (import.meta.env.DEV) {
-                console.log("Extracted user role:", userRole);
-            }
+            // Log the role for debugging
+            console.log("Extracted user role:", userRole, "from data:", {
+                "data.user?.role": data.user?.role,
+                "user.role": user.role,
+                "user.app_metadata?.role": user.app_metadata?.role,
+                "user.user_metadata?.role": user.user_metadata?.role,
+                "data.role": data.role
+            });
 
             if (accessToken) {
                 // Normalize the response to match our expected format

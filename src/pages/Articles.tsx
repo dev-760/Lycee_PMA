@@ -107,22 +107,13 @@ const Articles = () => {
             {/* Articles Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.length > 0 ? (
-                articles.map((article, index) => (
-                  <div 
-                    key={article.id} 
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <ArticleCard article={article} />
-                  </div>
+                articles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
                 ))
               ) : (
-                <div className="col-span-full text-center py-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/10 mb-4">
-                    <BookOpen className="w-10 h-10 text-gold" />
-                  </div>
-                  <p className="text-slate text-lg">{content.empty}</p>
-                </div>
+                <p className="text-center text-slate col-span-full">
+                  {content.empty}
+                </p>
               )}
             </div>
           </div>

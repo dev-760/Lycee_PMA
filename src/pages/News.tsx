@@ -108,22 +108,13 @@ const News = () => {
             {/* News Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {allNews.length > 0 ? (
-                allNews.map((article, index) => (
-                  <div 
-                    key={article.id} 
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <ArticleCard article={article} />
-                  </div>
+                allNews.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
                 ))
               ) : (
-                <div className="col-span-full text-center py-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-teal/10 mb-4">
-                    <Newspaper className="w-10 h-10 text-teal" />
-                  </div>
-                  <p className="text-slate text-lg">{content.empty}</p>
-                </div>
+                <p className="text-slate col-span-full text-center">
+                  {content.empty}
+                </p>
               )}
             </div>
           </div>

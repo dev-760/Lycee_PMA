@@ -111,19 +111,23 @@ const Header = () => {
 
       {/* Main Header - Deep Black Background */}
       <div
+<<<<<<< HEAD
         className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-white/10 backdrop-blur-sm`}
         style={{ backgroundColor: '#000000' }}
+=======
+        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-gray-200`}
+        style={{ backgroundColor: '#F4F1EC' }}
+>>>>>>> parent of 25c1865 (;))
       >
         <div className="container">
           <div className="flex items-center justify-between">
             {/* Logo & Title */}
             <Link to="/" className="flex items-center gap-4 group">
               <div className="relative">
-                <div className="absolute inset-0 bg-gold/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <img
                   src="/logo.png"
                   alt="Lycée Prince Moulay Abdellah"
-                  className="relative h-14 md:h-16 w-auto transition-transform duration-300 group-hover:scale-105 drop-shadow-md"
+                  className="h-14 md:h-16 w-auto transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
             </Link>

@@ -1,7 +1,6 @@
 import { Calendar, User, ArrowLeft, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Article } from "@/lib/api";
-import { useLanguage } from "@/i18n";
 
 interface ArticleCardProps {
   article: Article;
@@ -9,17 +8,6 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
-  const { getContentWithFallback, language, isRTL } = useLanguage();
-  
-  // Get localized content
-  const title = getContentWithFallback(article.title_translations, article.title);
-  const excerpt = getContentWithFallback(article.excerpt_translations, article.excerpt);
-  
-  const readMoreText = {
-    ar: "اقرأ المزيد",
-    en: "Read More",
-    fr: "Lire la suite"
-  };
   if (variant === "featured") {
     return (
       <article className="bg-black/40 rounded-2xl overflow-hidden shadow-card card-hover group border border-white/10">
@@ -27,15 +15,19 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
           <div className="relative h-64 md:h-80 overflow-hidden">
             <img
               src={article.image}
-              alt={title}
+              alt={article.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-transparent" />
 
             {/* Featured badge */}
+<<<<<<< HEAD
             <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} flex items-center gap-1 bg-gold text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-lg`}>
+=======
+            <div className="absolute top-4 right-4 flex items-center gap-1 bg-gold text-charcoal px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+>>>>>>> parent of 25c1865 (;))
               <Sparkles className="w-3 h-3" />
-              {language === 'ar' ? 'مقال مميز' : language === 'fr' ? 'Article vedette' : 'Featured'}
+              مقال مميز
             </div>
 
             <div className="absolute bottom-0 right-0 left-0 p-6 text-white">
@@ -43,10 +35,10 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
                 {article.category}
               </span>
               <h2 className="text-2xl md:text-3xl font-bold mb-3 leading-relaxed text-white">
-                {title}
+                {article.title}
               </h2>
               <p className="text-white/85 mb-4 line-clamp-2 text-base leading-relaxed">
-                {excerpt}
+                {article.excerpt}
               </p>
               <div className="flex items-center gap-5 text-sm">
                 <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
@@ -71,7 +63,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
         <Link to={`/article/${article.id}`} className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden relative">
           <img
             src={article.image}
-            alt={title}
+            alt={article.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-charcoal/20 group-hover:bg-transparent transition-colors"></div>
@@ -80,7 +72,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
           <span className="text-teal text-xs font-bold tracking-wide">{article.category}</span>
           <Link to={`/article/${article.id}`}>
             <h3 className="font-bold text-charcoal mt-1 mb-2 line-clamp-2 leading-relaxed hover:text-teal transition-colors text-sm">
-              {title}
+              {article.title}
             </h3>
           </Link>
           <span className="text-slate text-xs flex items-center gap-1.5">
@@ -98,7 +90,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
         <div className="relative h-48 overflow-hidden">
           <img
             src={article.image}
-            alt={title}
+            alt={article.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -110,11 +102,11 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
       <div className="p-6">
         <Link to={`/article/${article.id}`}>
           <h3 className="font-bold text-lg text-charcoal mb-3 line-clamp-2 leading-relaxed group-hover:text-teal transition-colors">
-            {title}
+            {article.title}
           </h3>
         </Link>
         <p className="text-slate text-sm mb-4 line-clamp-2 leading-relaxed">
-          {excerpt}
+          {article.excerpt}
         </p>
         <div className="flex items-center justify-between text-xs text-slate mb-5 pb-4 border-b border-white/10">
           <span className="flex items-center gap-1.5">
@@ -128,10 +120,10 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
         </div>
         <Link
           to={`/article/${article.id}`}
-          className={`inline-flex items-center gap-2 text-sm font-bold text-teal hover:text-charcoal transition-colors group/link ${isRTL ? 'flex-row-reverse' : ''}`}
+          className="inline-flex items-center gap-2 text-sm font-bold text-teal hover:text-charcoal transition-colors group/link"
         >
-          {readMoreText[language]}
-          <ArrowLeft className={`w-4 h-4 transition-transform ${isRTL ? 'rotate-180 group-hover/link:translate-x-1' : 'group-hover/link:-translate-x-1'}`} />
+          اقرأ المزيد
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover/link:-translate-x-1" />
         </Link>
       </div>
     </article>
