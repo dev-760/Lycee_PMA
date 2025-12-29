@@ -7,88 +7,87 @@
 
 @layer base {
   :root {
-    /* Brand Color Palette - Academic Newspaper Style */
-    /* Primary background: Deep black #000000 */
-    /* Primary accent: Metallic gold #D4AF37 */
-    /* Secondary accent: Deep academic blue #0F2A44 */
-    /* Text on dark: Off-white #F5F5F5 */
+    /* New Color Palette - Academic & Professional */
+    /* Primary: Deep Royal Blue #0F2A44 */
+    /* Accent: Gold/Brass #C6A24A */
+    /* Background: Ivory/Off-White #F4F1EC */
+    /* Text: Charcoal #2B2B2B */
 
-    --background: 0 0% 0%;
-    /* #000000 - Deep black */
-    --foreground: 0 0% 96%;
-    /* #F5F5F5 - Off-white */
+    --background: 36 17% 95%;
+    /* #F4F1EC */
+    --foreground: 0 0% 17%;
+    /* #2B2B2B */
 
-    --card: 0 0% 8%;
-    /* Dark gray for cards on black */
-    --card-foreground: 0 0% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 17%;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 17%;
 
-    /* Deep Academic Blue Primary */
+    /* Deep Royal Blue Primary */
     --primary: 210 64% 16%;
     /* #0F2A44 */
-    --primary-foreground: 0 0% 96%;
+    --primary-foreground: 36 17% 95%;
 
-    /* Dark Gray Secondary */
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 96%;
+    /* Warm Gray Secondary */
+    --secondary: 36 17% 90%;
+    --secondary-foreground: 210 64% 16%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 36 10% 88%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Metallic Gold Accent */
-    --accent: 45 65% 52%;
-    /* #D4AF37 - Metallic gold */
-    --accent-foreground: 0 0% 0%;
+    /* Gold Accent */
+    --accent: 42 50% 53%;
+    /* #C6A24A */
+    --accent-foreground: 0 0% 100%;
 
-    /* Gold Highlight */
-    --highlight: 45 65% 52%;
-    --highlight-foreground: 0 0% 0%;
+    /* Warm Gold Highlight */
+    --highlight: 42 50% 53%;
+    --highlight-foreground: 210 64% 16%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 45 65% 52%;
+    --border: 36 10% 85%;
+    --input: 36 10% 85%;
+    --ring: 42 50% 53%;
 
     --radius: 0.75rem;
 
     /* Custom Colors */
     --navy: 210 64% 16%;
-    /* #0F2A44 - Deep academic blue */
+    /* #0F2A44 */
     --navy-light: 210 50% 25%;
-    --charcoal: 0 0% 96%;
-    /* Off-white for text on black */
-    --charcoal-light: 0 0% 85%;
+    --charcoal: 0 0% 17%;
+    /* #2B2B2B */
+    --charcoal-light: 0 0% 30%;
     --teal: 210 64% 16%;
     /* Using navy as primary */
     --teal-light: 210 50% 25%;
     --teal-dark: 210 70% 12%;
-    --gold: 45 65% 52%;
-    /* #D4AF37 - Metallic gold */
-    --gold-light: 45 60% 62%;
-    --slate: 0 0% 65%;
-    --warm-gray: 0 0% 40%;
-    --ivory: 0 0% 8%;
-    /* Dark gray for components */
+    --gold: 42 50% 53%;
+    /* #C6A24A */
+    --gold-light: 42 45% 63%;
+    --slate: 0 0% 45%;
+    --warm-gray: 36 10% 60%;
+    --ivory: 36 17% 95%;
+    /* #F4F1EC */
 
-    /* Shadows - adjusted for dark theme */
-    --shadow-soft: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
-    --shadow-card: 0 2px 15px -3px hsl(0 0% 0% / 0.4);
-    --shadow-hover: 0 12px 35px -8px hsl(45 65% 52% / 0.2);
-    --shadow-nav: 0 4px 30px -4px hsl(0 0% 0% / 0.5);
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(210 64% 16% / 0.06);
+    --shadow-card: 0 2px 15px -3px hsl(210 64% 16% / 0.08);
+    --shadow-hover: 0 12px 35px -8px hsl(210 64% 16% / 0.12);
+    --shadow-nav: 0 4px 30px -4px hsl(210 64% 16% / 0.1);
 
     /* Sidebar */
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 45 65% 52%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 45 65% 52%;
+    --sidebar-background: 210 64% 16%;
+    --sidebar-foreground: 36 17% 95%;
+    --sidebar-primary: 42 50% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 22%;
+    --sidebar-accent-foreground: 36 17% 95%;
+    --sidebar-border: 210 50% 20%;
+    --sidebar-ring: 42 50% 53%;
   }
 
 }
@@ -142,50 +141,48 @@
   }
 
   .glass-nav {
-    @apply bg-black/95 backdrop-blur-md;
+    @apply bg-white/95 backdrop-blur-md;
   }
 
   /* Premium Button Styles - Following new color scheme */
   .btn-premium {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform;
-    background-color: #D4AF37;
-    color: #000000;
+    background-color: #0F2A44;
+    color: #F4F1EC;
     @apply hover:shadow-lg hover:-translate-y-0.5;
     @apply active:translate-y-0;
   }
 
   .btn-premium:hover {
-    border: 2px solid #D4AF37;
-    background-color: #E5C158;
+    border: 2px solid #C6A24A;
   }
 
   .btn-outline-premium {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300;
-    border: 2px solid #D4AF37;
-    color: #D4AF37;
+    border: 2px solid #0F2A44;
+    color: #0F2A44;
     background: transparent;
   }
 
   .btn-outline-premium:hover {
-    border-color: #E5C158;
-    color: #E5C158;
-    background-color: rgba(212, 175, 55, 0.1);
+    border-color: #C6A24A;
+    color: #C6A24A;
   }
 
   /* Navigation link hover effect */
   .nav-link {
     @apply relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300;
-    color: #F5F5F5;
+    color: #0F2A44;
   }
 
   .nav-link:hover {
-    color: #D4AF37;
+    color: #C6A24A;
   }
 
   .nav-link::after {
     content: '';
     @apply absolute bottom-0 left-1/2 w-0 h-0.5;
-    background: linear-gradient(to right, #D4AF37, #E5C158);
+    background: linear-gradient(to right, #C6A24A, #D4B35C);
     @apply transition-all duration-300 -translate-x-1/2;
   }
 
@@ -194,7 +191,7 @@
   }
 
   .nav-link-active {
-    color: #D4AF37;
+    color: #C6A24A;
   }
 
   .nav-link-active::after {
@@ -203,7 +200,7 @@
 
   /* Sidebar section styling */
   .sidebar-section {
-    @apply bg-black/40 rounded-2xl shadow-card p-6 border border-white/10;
+    @apply bg-white rounded-2xl shadow-card p-6 border border-gray-100/80;
     @apply transition-all duration-300 hover:shadow-hover;
   }
 
@@ -213,39 +210,39 @@
 
   .sidebar-title-bar {
     @apply w-1 h-6 rounded-full;
-    background: linear-gradient(to bottom, #D4AF37, #E5C158);
+    background: linear-gradient(to bottom, #C6A24A, #D4B35C);
   }
 
   .sidebar-title-text {
     @apply text-lg font-bold;
-    color: #F5F5F5;
+    color: #0F2A44;
   }
 
   /* Header styling */
   .header-primary {
-    background-color: #000000;
-    color: #F5F5F5;
+    background-color: #0F2A44;
+    color: #F4F1EC;
   }
 
   .header-accent-line {
     height: 3px;
-    background-color: #D4AF37;
+    background-color: #C6A24A;
   }
 
   /* Footer styling */
   .footer-primary {
-    background-color: #000000;
-    color: #F5F5F5;
+    background-color: #0F2A44;
+    color: #F4F1EC;
   }
 
   /* Link styling */
   .link-primary {
-    color: #F5F5F5;
+    color: #0F2A44;
     transition: color 0.3s ease;
   }
 
   .link-primary:hover {
-    color: #D4AF37;
+    color: #C6A24A;
   }
 }
 
@@ -314,17 +311,31 @@
     }
   }
 
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
   /* Gradient backgrounds with new colors */
   .bg-gradient-premium {
-    background: linear-gradient(to bottom right, #000000, #0A0A0A, #000000);
+    background: linear-gradient(to bottom right, #0F2A44, #163A5C, #0F2A44);
   }
 
   .bg-gradient-gold {
-    background: linear-gradient(to bottom right, #D4AF37, #E5C158, #D4AF37);
+    background: linear-gradient(to bottom right, #C6A24A, #D4B35C, #C6A24A);
   }
 
   .bg-gradient-warm {
-    background: linear-gradient(to bottom right, #000000, #0A0A0A, #000000);
+    background: linear-gradient(to bottom right, #F4F1EC, #FBF9F6, #F4F1EC);
   }
 
   /* Text colors */
@@ -333,11 +344,11 @@
   }
 
   .text-gold-accent {
-    color: #D4AF37;
+    color: #C6A24A;
   }
 
   .text-body {
-    color: #F5F5F5;
+    color: #2B2B2B;
   }
 
   /* Background colors */
@@ -346,11 +357,11 @@
   }
 
   .bg-gold-accent {
-    background-color: #D4AF37;
+    background-color: #C6A24A;
   }
 
   .bg-ivory {
-    background-color: #000000;
+    background-color: #F4F1EC;
   }
 }
 
@@ -361,7 +372,7 @@
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
-  color: #666666;
+  color: #adb5bd;
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -404,27 +415,27 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid #D4AF37;
+  border-left: 3px solid #C6A24A;
   padding-left: 1rem;
   margin-left: 0;
   margin-bottom: 0.75rem;
-  color: #CCCCCC;
+  color: #666;
   font-style: italic;
 }
 
 .ProseMirror hr {
   border: none;
-  border-top: 2px solid #333333;
+  border-top: 2px solid #e5e7eb;
   margin: 1.5rem 0;
 }
 
 .ProseMirror a {
-  color: #D4AF37;
+  color: #0F2A44;
   text-decoration: underline;
 }
 
 .ProseMirror a:hover {
-  color: #E5C158;
+  color: #C6A24A;
 }
 
 .ProseMirror img {
@@ -439,7 +450,7 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #F5F5F5;
+  color: #0F2A44;
 }
 
 .article-content h2 {
@@ -447,7 +458,7 @@
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: #F5F5F5;
+  color: #0F2A44;
 }
 
 .article-content h3 {
@@ -455,7 +466,7 @@
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #F5F5F5;
+  color: #0F2A44;
 }
 
 .article-content p {
@@ -475,24 +486,24 @@
 }
 
 .article-content blockquote {
-  border-left: 4px solid #D4AF37;
+  border-left: 4px solid #C6A24A;
   padding-left: 1.5rem;
   margin: 1.5rem 0;
-  color: #CCCCCC;
+  color: #555;
   font-style: italic;
-  background: #1A1A1A;
+  background: #faf9f7;
   padding: 1rem 1.5rem;
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
 .article-content a {
-  color: #D4AF37;
+  color: #0F2A44;
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .article-content a:hover {
-  color: #E5C158;
+  color: #C6A24A;
 }
 
 .article-content img {
@@ -505,6 +516,6 @@
 
 .article-content hr {
   border: none;
-  border-top: 2px solid #333333;
+  border-top: 2px solid #e5e7eb;
   margin: 2rem 0;
 }

@@ -13,11 +13,11 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-    // Ensure dark background is always set
+    // Ensure light mode is always set
     useEffect(() => {
         const root = document.documentElement;
         root.classList.remove('dark');
-        document.body.style.backgroundColor = '#000000';
+        document.body.style.backgroundColor = '#F4F1EC';
     }, []);
 
     return (
