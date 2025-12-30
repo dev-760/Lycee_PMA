@@ -20,9 +20,9 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer style={{ backgroundColor: '#0F2A44' }} className="text-white">
+    <footer className="bg-navy text-white">
       {/* Gold Accent Line at Top */}
-      <div style={{ height: '3px', backgroundColor: '#C6A24A' }}></div>
+      <div className="h-[3px] bg-gold"></div>
 
       {/* Main Footer */}
       <div className="container py-16">
@@ -43,37 +43,25 @@ const Footer = () => {
             <div className="flex gap-3">
               <a
                 href="#"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-white/10 hover:bg-gold"
               >
                 <Facebook className="w-5 h-5" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-white/10 hover:bg-gold"
               >
                 <Twitter className="w-5 h-5" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-white/10 hover:bg-gold"
               >
                 <Instagram className="w-5 h-5" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C6A24A'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-white/10 hover:bg-gold"
               >
                 <Youtube className="w-5 h-5" />
               </a>
@@ -83,7 +71,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div>
             <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C6A24A' }}></span>
+              <span className="w-2 h-2 rounded-full bg-gold"></span>
               {t('footer', 'quickLinks')}
             </h4>
             <ul className="space-y-3">
@@ -91,13 +79,10 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-white/70 transition-colors flex items-center gap-2 group"
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#C6A24A'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                    className="text-white/70 transition-colors flex items-center gap-2 group hover:text-gold"
                   >
                     <span
-                      className="w-0 group-hover:w-2 h-0.5 transition-all"
-                      style={{ backgroundColor: '#C6A24A' }}
+                      className="w-0 group-hover:w-2 h-0.5 transition-all bg-gold"
                     ></span>
                     {link.name}
                   </Link>
@@ -109,34 +94,31 @@ const Footer = () => {
           {/* Contact Info */}
           <div>
             <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C6A24A' }}></span>
+              <span className="w-2 h-2 rounded-full bg-gold"></span>
               {t('footer', 'contactUs')}
             </h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10"
                 >
-                  <MapPin className="w-5 h-5" style={{ color: '#C6A24A' }} />
+                  <MapPin className="w-5 h-5 text-gold" />
                 </div>
                 <span className="text-white/70">{t('footer', 'address')}</span>
               </li>
               <li className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10"
                 >
-                  <Phone className="w-5 h-5" style={{ color: '#C6A24A' }} />
+                  <Phone className="w-5 h-5 text-gold" />
                 </div>
                 <span className="text-white/70" dir="ltr">+212 5XX-XXXXXX</span>
               </li>
               <li className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10"
                 >
-                  <Mail className="w-5 h-5" style={{ color: '#C6A24A' }} />
+                  <Mail className="w-5 h-5 text-gold" />
                 </div>
                 <span className="text-white/70">info@lycee-pma.ma</span>
               </li>
@@ -146,15 +128,14 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+      <div className="border-t border-white/10">
         <div className="container py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/50 text-sm text-center sm:text-start">
             © {currentYear} {t('common', 'siteName')}. {t('footer', 'copyright')}
           </p>
           <button
             onClick={scrollToTop}
-            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-lg"
-            style={{ backgroundColor: '#C6A24A', boxShadow: '0 4px 15px rgba(198, 162, 74, 0.3)' }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:-translate-y-1 shadow-[0_4px_15px_rgba(198,162,74,0.3)] bg-gold"
             aria-label="العودة للأعلى"
           >
             <ArrowUp className="w-5 h-5 text-white" />

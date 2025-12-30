@@ -9,7 +9,7 @@
   :root {
     /* New Color Palette - Academic & Professional */
     /* Primary: Deep Royal Blue #0F2A44 */
-    /* Accent: Gold/Brass #C6A24A */
+    /* Accent: Muted Gold #C6A24A */
     /* Background: Ivory/Off-White #F4F1EC */
     /* Text: Charcoal #2B2B2B */
 
@@ -25,7 +25,7 @@
     --popover-foreground: 0 0% 17%;
 
     /* Deep Royal Blue Primary */
-    --primary: 210 64% 16%;
+    --primary: 209 64% 16%;
     /* #0F2A44 */
     --primary-foreground: 36 17% 95%;
 
@@ -36,13 +36,13 @@
     --muted: 36 10% 88%;
     --muted-foreground: 0 0% 40%;
 
-    /* Gold Accent */
-    --accent: 42 50% 53%;
+    /* Muted Gold Accent */
+    --accent: 43 52% 53%;
     /* #C6A24A */
     --accent-foreground: 0 0% 100%;
 
     /* Warm Gold Highlight */
-    --highlight: 42 50% 53%;
+    --highlight: 43 52% 53%;
     --highlight-foreground: 210 64% 16%;
 
     --destructive: 0 72% 51%;
@@ -50,44 +50,44 @@
 
     --border: 36 10% 85%;
     --input: 36 10% 85%;
-    --ring: 42 50% 53%;
+    --ring: 43 52% 53%;
 
     --radius: 0.75rem;
 
     /* Custom Colors */
-    --navy: 210 64% 16%;
+    --navy: 209 64% 16%;
     /* #0F2A44 */
     --navy-light: 210 50% 25%;
     --charcoal: 0 0% 17%;
     /* #2B2B2B */
     --charcoal-light: 0 0% 30%;
-    --teal: 210 64% 16%;
+    --teal: 209 64% 16%;
     /* Using navy as primary */
     --teal-light: 210 50% 25%;
     --teal-dark: 210 70% 12%;
-    --gold: 42 50% 53%;
+    --gold: 43 52% 53%;
     /* #C6A24A */
-    --gold-light: 42 45% 63%;
+    --gold-light: 43 55% 63%;
     --slate: 0 0% 45%;
     --warm-gray: 36 10% 60%;
     --ivory: 36 17% 95%;
     /* #F4F1EC */
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(210 64% 16% / 0.06);
-    --shadow-card: 0 2px 15px -3px hsl(210 64% 16% / 0.08);
-    --shadow-hover: 0 12px 35px -8px hsl(210 64% 16% / 0.12);
-    --shadow-nav: 0 4px 30px -4px hsl(210 64% 16% / 0.1);
+    --shadow-soft: 0 4px 20px -2px hsl(209 64% 16% / 0.06);
+    --shadow-card: 0 2px 15px -3px hsl(209 64% 16% / 0.08);
+    --shadow-hover: 0 12px 35px -8px hsl(209 64% 16% / 0.12);
+    --shadow-nav: 0 4px 30px -4px hsl(209 64% 16% / 0.1);
 
     /* Sidebar */
-    --sidebar-background: 210 64% 16%;
+    --sidebar-background: 209 64% 16%;
     --sidebar-foreground: 36 17% 95%;
-    --sidebar-primary: 42 50% 53%;
+    --sidebar-primary: 43 52% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 50% 22%;
     --sidebar-accent-foreground: 36 17% 95%;
     --sidebar-border: 210 50% 20%;
-    --sidebar-ring: 42 50% 53%;
+    --sidebar-ring: 43 52% 53%;
   }
 
 }
@@ -147,42 +147,42 @@
   /* Premium Button Styles - Following new color scheme */
   .btn-premium {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform;
-    background-color: #0F2A44;
+    background-color: #002147;
     color: #F4F1EC;
     @apply hover:shadow-lg hover:-translate-y-0.5;
     @apply active:translate-y-0;
   }
 
   .btn-premium:hover {
-    border: 2px solid #C6A24A;
+    border: 2px solid #C5A059;
   }
 
   .btn-outline-premium {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-300;
-    border: 2px solid #0F2A44;
-    color: #0F2A44;
+    border: 2px solid #002147;
+    color: #002147;
     background: transparent;
   }
 
   .btn-outline-premium:hover {
-    border-color: #C6A24A;
-    color: #C6A24A;
+    border-color: #C5A059;
+    color: #C5A059;
   }
 
   /* Navigation link hover effect */
   .nav-link {
     @apply relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300;
-    color: #0F2A44;
+    color: #002147;
   }
 
   .nav-link:hover {
-    color: #C6A24A;
+    color: #C5A059;
   }
 
   .nav-link::after {
     content: '';
     @apply absolute bottom-0 left-1/2 w-0 h-0.5;
-    background: linear-gradient(to right, #C6A24A, #D4B35C);
+    background: linear-gradient(to right, #C5A059, #D4B35C);
     @apply transition-all duration-300 -translate-x-1/2;
   }
 
@@ -191,7 +191,7 @@
   }
 
   .nav-link-active {
-    color: #C6A24A;
+    color: #C5A059;
   }
 
   .nav-link-active::after {
@@ -210,39 +210,39 @@
 
   .sidebar-title-bar {
     @apply w-1 h-6 rounded-full;
-    background: linear-gradient(to bottom, #C6A24A, #D4B35C);
+    background: linear-gradient(to bottom, #C5A059, #D4B35C);
   }
 
   .sidebar-title-text {
     @apply text-lg font-bold;
-    color: #0F2A44;
+    color: #002147;
   }
 
   /* Header styling */
   .header-primary {
-    background-color: #0F2A44;
+    background-color: #002147;
     color: #F4F1EC;
   }
 
   .header-accent-line {
     height: 3px;
-    background-color: #C6A24A;
+    background-color: #C5A059;
   }
 
   /* Footer styling */
   .footer-primary {
-    background-color: #0F2A44;
+    background-color: #002147;
     color: #F4F1EC;
   }
 
   /* Link styling */
   .link-primary {
-    color: #0F2A44;
+    color: #002147;
     transition: color 0.3s ease;
   }
 
   .link-primary:hover {
-    color: #C6A24A;
+    color: #C5A059;
   }
 }
 
@@ -327,11 +327,11 @@
 
   /* Gradient backgrounds with new colors */
   .bg-gradient-premium {
-    background: linear-gradient(to bottom right, #0F2A44, #163A5C, #0F2A44);
+    background: linear-gradient(to bottom right, #002147, #163A5C, #002147);
   }
 
   .bg-gradient-gold {
-    background: linear-gradient(to bottom right, #C6A24A, #D4B35C, #C6A24A);
+    background: linear-gradient(to bottom right, #C5A059, #D4B35C, #C5A059);
   }
 
   .bg-gradient-warm {
@@ -340,11 +340,11 @@
 
   /* Text colors */
   .text-royal-blue {
-    color: #0F2A44;
+    color: #002147;
   }
 
   .text-gold-accent {
-    color: #C6A24A;
+    color: #C5A059;
   }
 
   .text-body {
@@ -353,11 +353,11 @@
 
   /* Background colors */
   .bg-royal-blue {
-    background-color: #0F2A44;
+    background-color: #002147;
   }
 
   .bg-gold-accent {
-    background-color: #C6A24A;
+    background-color: #C5A059;
   }
 
   .bg-ivory {
@@ -415,7 +415,7 @@
 }
 
 .ProseMirror blockquote {
-  border-left: 3px solid #C6A24A;
+  border-left: 3px solid #C5A059;
   padding-left: 1rem;
   margin-left: 0;
   margin-bottom: 0.75rem;
@@ -430,12 +430,12 @@
 }
 
 .ProseMirror a {
-  color: #0F2A44;
+  color: #002147;
   text-decoration: underline;
 }
 
 .ProseMirror a:hover {
-  color: #C6A24A;
+  color: #C5A059;
 }
 
 .ProseMirror img {
@@ -450,7 +450,7 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #0F2A44;
+  color: #002147;
 }
 
 .article-content h2 {
@@ -458,7 +458,7 @@
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: #0F2A44;
+  color: #002147;
 }
 
 .article-content h3 {
@@ -466,7 +466,7 @@
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #0F2A44;
+  color: #002147;
 }
 
 .article-content p {
@@ -486,7 +486,7 @@
 }
 
 .article-content blockquote {
-  border-left: 4px solid #C6A24A;
+  border-left: 4px solid #C5A059;
   padding-left: 1.5rem;
   margin: 1.5rem 0;
   color: #555;
@@ -497,13 +497,13 @@
 }
 
 .article-content a {
-  color: #0F2A44;
+  color: #002147;
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .article-content a:hover {
-  color: #C6A24A;
+  color: #C5A059;
 }
 
 .article-content img {

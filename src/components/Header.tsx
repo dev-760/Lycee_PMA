@@ -75,27 +75,22 @@ const Header = () => {
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 px-4 py-2 rounded-lg shadow-lg z-50"
-        style={{ backgroundColor: '#0F2A44', color: '#F4F1EC' }}
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 px-4 py-2 rounded-lg shadow-lg z-50 bg-navy text-ivory"
       >
         {t('nav', 'skipToContent')}
       </a>
 
       {/* Top Bar - Deep Royal Blue */}
-      <div style={{ backgroundColor: '#0F2A44' }} className="py-2.5 border-b border-white/10">
+      <div className="py-2.5 border-b border-white/10 bg-navy">
         <div className="container flex justify-between items-center">
-          <div className="flex items-center gap-2 text-sm" style={{ color: '#F4F1EC' }}>
-            <Calendar className="w-4 h-4" style={{ color: '#C6A24A' }} />
+          <div className="flex items-center gap-2 text-sm text-gold">
+            <Calendar className="w-4 h-4" />
             <span className="font-medium">{currentDate}</span>
           </div>
           <div className="hidden sm:flex items-center gap-3">
             <Link
               to="/admin/login"
-              className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer hover:opacity-80"
-              style={{
-                color: '#C6A24A',
-                backgroundColor: 'rgba(198, 162, 74, 0.1)',
-                borderColor: 'rgba(198, 162, 74, 0.3)'
-              }}
+              className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border transition-all cursor-pointer hover:opacity-80 text-gold bg-gold/10 border-gold/30"
               title={t('auth', 'controlPanel')}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -107,12 +102,11 @@ const Header = () => {
       </div>
 
       {/* Gold Accent Line */}
-      <div style={{ height: '3px', backgroundColor: '#C6A24A' }}></div>
+      <div className="h-[3px] bg-gold"></div>
 
       {/* Main Header - Ivory Background */}
       <div
-        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-gray-200/60 backdrop-blur-sm`}
-        style={{ backgroundColor: '#F4F1EC' }}
+        className={`transition-all duration-300 ${isScrolled ? 'shadow-nav py-3' : 'py-5'} border-b border-gray-200/60 backdrop-blur-sm bg-background`}
       >
         <div className="container">
           <div className="flex items-center justify-between">
@@ -135,26 +129,24 @@ const Header = () => {
                   <li key={link.name}>
                     <Link
                       to={link.href}
-                      className={`relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300`}
-                      style={{
-                        color: isActiveLink(link.href) ? '#C6A24A' : '#0F2A44'
-                      }}
+                      className={`relative px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 ${isActiveLink(link.href) ? 'text-gold' : 'text-navy'}`}
                       onMouseEnter={(e) => {
                         if (!isActiveLink(link.href)) {
-                          e.currentTarget.style.color = '#C6A24A';
+                          e.currentTarget.classList.add('text-gold');
+                          e.currentTarget.classList.remove('text-navy');
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isActiveLink(link.href)) {
-                          e.currentTarget.style.color = '#0F2A44';
+                          e.currentTarget.classList.remove('text-gold');
+                          e.currentTarget.classList.add('text-navy');
                         }
                       }}
                     >
                       {link.name}
                       {isActiveLink(link.href) && (
                         <span
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-0.5 rounded-full"
-                          style={{ backgroundColor: '#C6A24A' }}
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-0.5 rounded-full bg-gold"
                         />
                       )}
                     </Link>
@@ -165,11 +157,7 @@ const Header = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden relative p-2.5 rounded-xl transition-all duration-300"
-              style={{
-                backgroundColor: isMenuOpen ? '#0F2A44' : '#E8E5E0',
-                color: isMenuOpen ? '#F4F1EC' : '#0F2A44'
-              }}
+              className={`lg:hidden relative p-2.5 rounded-xl transition-all duration-300 ${isMenuOpen ? 'bg-navy text-ivory' : 'bg-[#E8E5E0] text-navy'}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="قائمة التنقل"
               aria-expanded={isMenuOpen}
@@ -185,9 +173,8 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       <div
-        className={`lg:hidden fixed inset-x-0 top-[140px] backdrop-blur-xl shadow-hover z-40 transition-all duration-300 ease-out ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+        className={`lg:hidden fixed inset-x-0 top-[140px] backdrop-blur-xl shadow-hover z-40 transition-all duration-300 ease-out bg-background/98 ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
           }`}
-        style={{ backgroundColor: 'rgba(244, 241, 236, 0.98)' }}
       >
         <nav className="container py-6" role="navigation" aria-label="التنقل المحمول">
           <ul className="flex flex-col gap-2">
@@ -199,16 +186,12 @@ const Header = () => {
               >
                 <Link
                   to={link.href}
-                  className="flex items-center justify-between px-5 py-4 rounded-xl transition-all duration-300 font-semibold text-base"
-                  style={{
-                    backgroundColor: isActiveLink(link.href) ? '#0F2A44' : 'transparent',
-                    color: isActiveLink(link.href) ? '#F4F1EC' : '#0F2A44'
-                  }}
+                  className={`flex items-center justify-between px-5 py-4 rounded-xl transition-all duration-300 font-semibold text-base ${isActiveLink(link.href) ? 'bg-navy text-ivory' : 'bg-transparent text-navy'}`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <span>{link.name}</span>
                   {isActiveLink(link.href) && (
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C6A24A' }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gold"></span>
                   )}
                 </Link>
               </li>
@@ -217,8 +200,8 @@ const Header = () => {
 
           {/* Mobile Quick Info */}
           <div className="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm" style={{ color: '#2B2B2B' }}>
-              <Calendar className="w-4 h-4" style={{ color: '#C6A24A' }} />
+            <div className="flex items-center gap-2 text-sm text-charcoal">
+              <Calendar className="w-4 h-4 text-gold" />
               <span>{currentDate}</span>
             </div>
             <div className="flex items-center gap-3">
@@ -231,8 +214,7 @@ const Header = () => {
       {/* Overlay for mobile menu */}
       {isMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 backdrop-blur-sm z-30"
-          style={{ backgroundColor: 'rgba(15, 42, 68, 0.2)' }}
+          className="lg:hidden fixed inset-0 backdrop-blur-sm z-30 bg-navy/20"
           onClick={() => setIsMenuOpen(false)}
           aria-hidden="true"
         />
