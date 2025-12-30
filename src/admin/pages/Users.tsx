@@ -125,8 +125,9 @@ const AdminUsers = () => {
                 return;
             }
 
+            const generatedUsername = formData.email.split('@')[0];
             const result = await addUser({
-                username: formData.username,
+                username: generatedUsername,
                 password: formData.password,
                 name: formData.name,
                 email: formData.email,
@@ -373,18 +374,7 @@ const AdminUsers = () => {
                                 />
                             </div>
 
-                            {!editingUser && (
-                                <div>
-                                    <label className="block text-sm font-medium text-charcoal mb-2">{t('auth', 'username')}</label>
-                                    <input
-                                        type="text"
-                                        value={formData.username}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                        className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 outline-none"
-                                        required
-                                    />
-                                </div>
-                            )}
+
 
                             <div>
                                 <label className="block text-sm font-medium text-charcoal mb-2">{t('users', 'email')}</label>
@@ -460,7 +450,7 @@ const AdminUsers = () => {
                                                 {passwordStrength.errors.map((err, idx) => (
                                                     <li key={idx} className="flex items-center gap-1">
                                                         <XCircle className="w-3 h-3" />
-                                                        {err}
+                                                        {t('validation', err)}
                                                     </li>
                                                 ))}
                                             </ul>

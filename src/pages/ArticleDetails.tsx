@@ -393,7 +393,8 @@ const ArticleDetails = () => {
                           <video
                             src={video}
                             controls
-                            className="w-full aspect-video"
+                            preload="metadata"
+                            className="w-full h-full object-cover"
                             poster={images[0] || undefined}
                           >
                             Your browser does not support video playback.

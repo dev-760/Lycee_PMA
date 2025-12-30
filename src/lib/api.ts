@@ -221,20 +221,44 @@ export const api = {
             const images = article.images?.slice(0, 10) || (article.image ? [article.image] : []);
             const videos = article.videos?.slice(0, 5) || [];
 
-            const { data, error } = await supabase
-                .from('articles')
-                .insert({
-                    ...preparedData,
-                    image: images[0] || '', // Legacy field - first image
-                    images: images, // New multi-image field
-                    videos: videos, // New video field
-                    date: article.date || new Date().toISOString().split('T')[0],
-                })
-                .select()
-                .single();
+            try {
+                const { data, error } = await supabase
+                    .from('articles')
+                    .insert({
+                        ...preparedData,
+                        image: images[0] || '',
+                        images: images,
+                        videos: videos,
+                        date: article.date || new Date().toISOString().split('T')[0],
+                    })
+                    .select()
+                    .single();
 
-            if (error) throw error;
-            return mapArticle(data);
+                if (error) throw error;
+                return mapArticle(data);
+            } catch (err: any) {
+                // FALLBACK: If 'images' column doesn't exist (code 42703 or PGRST204), try ensuring legacy compat
+                if (err.code === '42703' || err.code === 'PGRST204') {
+                    console.warn("Media columns missing, falling back to legacy fields");
+                    // Remove new columns and try again
+                    // Create basic object compatible with legacy db
+                    const legacyData = {
+                        ...preparedData,
+                        image: images[0] || '',
+                        date: article.date || new Date().toISOString().split('T')[0],
+                    };
+
+                    const { data, error } = await supabase
+                        .from('articles')
+                        .insert(legacyData)
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+                    return mapArticle(data);
+                }
+                throw err;
+            }
         },
 
         /**

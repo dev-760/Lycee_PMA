@@ -261,10 +261,11 @@ const AdminNews = () => {
       }
       setIsModalOpen(false);
     } catch (error) {
-      console.error(error);
+      console.error('Save failed:', error);
+      const errorMessage = (error as any)?.message || (error as any)?.error_description || (error instanceof Error ? error.message : 'Operation failed');
       toast({
         title: t('common', 'error'),
-        description: 'Operation failed',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {

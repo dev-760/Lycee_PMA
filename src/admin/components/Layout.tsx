@@ -96,6 +96,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         navigate('/admin/login');
     };
 
+    const handleVisitSite = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        await logout();
+        navigate('/');
+    };
+
     // Get role display name
     const getRoleDisplayName = (role: string) => {
         return t('roles', role);
@@ -120,7 +126,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     return (
         <div className="min-h-screen bg-gray-50 flex">
             {/* Enhanced Sidebar */}
-            <aside className={`fixed inset-y-0 ${isRTL ? 'right-0' : 'left-0'} z-50 w-72 bg-gradient-to-br from-charcoal via-charcoal-light to-charcoal transform transition-transform duration-300 lg:translate-x-0 shadow-2xl ${isSidebarOpen
+            <aside className={`fixed inset-y-0 ${isRTL ? 'right-0' : 'left-0'} z-50 w-72 bg-gradient-to-br from-navy via-navy-light to-navy transform transition-transform duration-300 lg:translate-x-0 shadow-2xl ${isSidebarOpen
                 ? 'translate-x-0'
                 : isRTL
                     ? 'translate-x-full lg:translate-x-0'
@@ -128,9 +134,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 }`}>
                 <div className="flex flex-col h-full relative overflow-hidden">
                     {/* Decorative background elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-                    
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-navy-light/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Enhanced Logo */}
                         <div className="p-6 border-b border-white/10 bg-white/5 backdrop-blur-sm">
@@ -143,7 +149,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                                     />
                                 </div>
                                 <div>
-                                    <h1 className="text-lg font-bold text-white group-hover:text-teal-light transition-colors">{t('auth', 'controlPanel')}</h1>
+                                    <h1 className="text-lg font-bold text-white group-hover:text-gold transition-colors">{t('auth', 'controlPanel')}</h1>
                                     <p className="text-xs text-white/60">{t('common', 'siteName')}</p>
                                 </div>
                             </Link>
@@ -159,7 +165,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                                         to={item.href}
                                         onClick={() => setIsSidebarOpen(false)}
                                         className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 relative overflow-hidden ${active
-                                            ? 'bg-gradient-to-r from-teal to-teal-light text-white shadow-xl shadow-teal/40 scale-[1.02]'
+                                            ? 'bg-gradient-to-r from-gold to-gold-light text-navy shadow-xl shadow-gold/20 scale-[1.02]'
                                             : 'text-white/70 hover:bg-white/10 hover:text-white hover:scale-[1.01] hover:shadow-lg'
                                             }`}
                                         style={{ animationDelay: `${index * 50}ms` }}
@@ -168,11 +174,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                                         {active && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-lg" />
                                         )}
-                                        <div className={`absolute inset-0 bg-gradient-to-r from-teal/20 to-teal-light/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${active ? 'opacity-100' : ''}`} />
+                                        <div className={`absolute inset-0 bg-gradient-to-r from-gold/20 to-gold-light/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${active ? 'opacity-100' : ''}`} />
                                         <div className={`relative z-10 p-2 rounded-xl ${active ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10'} transition-all duration-300`}>
-                                            <item.icon className={`w-5 h-5 ${active ? 'text-white' : 'text-white/80 group-hover:text-teal-light'} transition-colors duration-300`} />
+                                            <item.icon className={`w-5 h-5 ${active ? 'text-navy' : 'text-white/80 group-hover:text-gold'} transition-colors duration-300`} />
                                         </div>
-                                        <span className={`font-semibold relative z-10 flex-1 ${active ? 'text-white' : 'text-white/80 group-hover:text-white'} transition-colors duration-300`}>{item.name}</span>
+                                        <span className={`font-semibold relative z-10 flex-1 ${active ? 'text-navy' : 'text-white/80 group-hover:text-white'} transition-colors duration-300`}>{item.name}</span>
                                         {active && (
                                             <ChevronIcon className={`w-4 h-4 relative z-10 ${isRTL ? 'mr-auto' : 'ml-auto'} animate-slide-in`} />
                                         )}
@@ -183,8 +189,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
                         {/* Enhanced User section */}
                         <div className="p-4 border-t border-white/10 bg-white/5 backdrop-blur-sm">
-                            <div className="flex items-center gap-3 mb-4 px-4 py-4 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:border-teal/30 transition-all duration-300">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal/40 to-teal-dark/40 flex items-center justify-center border-2 border-teal/40 shadow-lg">
+                            <div className="flex items-center gap-3 mb-4 px-4 py-4 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:border-gold/30 transition-all duration-300">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-navy/40 to-navy-light/40 flex items-center justify-center border-2 border-navy/40 shadow-lg">
                                     <User className="w-6 h-6 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -219,48 +225,49 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
             {/* Main Content */}
             <div className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'}`}>
-                        {/* Enhanced Top Header */}
-                        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-                            <div className="flex items-center justify-between px-6 py-4">
-                                <button
-                                    onClick={() => setIsSidebarOpen(true)}
-                                    className="lg:hidden p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 active:scale-95"
-                                >
-                                    <Menu className="w-6 h-6 text-charcoal" />
-                                </button>
+                {/* Enhanced Top Header */}
+                <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="lg:hidden p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 active:scale-95"
+                        >
+                            <Menu className="w-6 h-6 text-charcoal" />
+                        </button>
 
-                                <div className="hidden sm:flex items-center gap-3 text-sm">
-                                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal/10 to-teal-light/10 rounded-xl border border-teal/20">
-                                        <Shield className="w-4 h-4 text-teal" />
-                                        <span className="text-charcoal font-semibold">{t('admin', 'welcome')}, <span className="text-teal">{currentUser?.name}</span></span>
-                                    </div>
-                                    <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm ${getRoleBadgeColor(currentUser?.role || '')}`}>
-                                        {currentUser && getRoleDisplayName(currentUser.role)}
-                                    </span>
-                                </div>
-
-                                <div className={`flex items-center gap-3 ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
-                                    <LanguageSwitcher variant="admin" />
-                                    <Link
-                                        to="/"
-                                        className="text-sm text-teal hover:text-teal-dark transition-colors font-semibold flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-teal/10 border border-teal/20 hover:border-teal/40 transition-all duration-200"
-                                    >
-                                        {t('nav', 'visitSite')}
-                                        <span className="text-lg">{isRTL ? '←' : '→'}</span>
-                                    </Link>
-                                </div>
+                        <div className="hidden sm:flex items-center gap-3 text-sm">
+                            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-navy/5 to-navy-light/5 rounded-xl border border-navy/10">
+                                <Shield className="w-4 h-4 text-navy" />
+                                <span className="text-gray-700 font-semibold">{t('admin', 'welcome')}, <span className="text-navy">{currentUser?.name}</span></span>
                             </div>
-                        </header>
+                            <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm ${getRoleBadgeColor(currentUser?.role || '')}`}>
+                                {currentUser && getRoleDisplayName(currentUser.role)}
+                            </span>
+                        </div>
 
-                        {/* Enhanced Page Content */}
-                        <main className="p-6 lg:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50/50 min-h-[calc(100vh-80px)]">
-                            <div className="max-w-7xl mx-auto">
-                                <Breadcrumbs />
-                                <div className="animate-fade-in">
-                                    {children}
-                                </div>
-                            </div>
-                        </main>
+                        <div className={`flex items-center gap-3 ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
+                            <LanguageSwitcher variant="admin" />
+                            <a
+                                href="/"
+                                onClick={handleVisitSite}
+                                className="text-sm text-navy hover:text-navy-light transition-colors font-semibold flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-navy/5 border border-navy/10 hover:border-navy/30 transition-all duration-200"
+                            >
+                                {t('nav', 'visitSite')}
+                                <span className="text-lg">{isRTL ? '←' : '→'}</span>
+                            </a>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Enhanced Page Content */}
+                <main className="p-6 lg:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50/50 min-h-[calc(100vh-80px)]">
+                    <div className="max-w-7xl mx-auto">
+                        <Breadcrumbs />
+                        <div className="animate-fade-in">
+                            {children}
+                        </div>
+                    </div>
+                </main>
             </div>
         </div>
     );

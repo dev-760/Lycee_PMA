@@ -80,19 +80,20 @@ export const validatePassword = (password: string): PasswordStrength => {
     let score = 0;
 
     if (password.length < 8) {
-        errors.push('يجب أن تتكون كلمة المرور من 8 أحرف على الأقل');
+        errors.push('passwordLength');
     } else score++;
 
     if (/[A-Z]/.test(password)) score++;
-    else errors.push('يجب أن تحتوي على حرف كبير واحد على الأقل');
+    else errors.push('passwordUppercase');
 
     if (/[a-z]/.test(password)) score++;
-    else errors.push('يجب أن تحتوي على حرف صغير واحد على الأقل');
+    else errors.push('passwordLowercase');
 
     if (/[0-9]/.test(password)) score++;
-    else errors.push('يجب أن تحتوي على رقم واحد على الأقل');
+    else errors.push('passwordNumber');
 
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+    // else errors.push('passwordSpecial'); // Optional usually
 
     return {
         isValid: errors.length === 0 && password.length >= 8,

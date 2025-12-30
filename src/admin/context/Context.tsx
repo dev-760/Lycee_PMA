@@ -10,8 +10,8 @@ import { useAuth } from '@/context/AuthContext';
 import { UserRole as AuthUserRole } from '@/api/auth.types';
 
 // Auto-logout configuration (in milliseconds)
-const AUTO_LOGOUT_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-const WARNING_BEFORE_LOGOUT = 5 * 60 * 1000; // Show warning 5 minutes before logout
+const AUTO_LOGOUT_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+const WARNING_BEFORE_LOGOUT = 60 * 1000; // Show warning 1 minute before logout
 
 // User roles (aligned with AuthContext)
 export type UserRole = AuthUserRole;
@@ -128,6 +128,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     // Integration with Global AuthContext
     const { user: authUser, login: authLogin, logout: authLogout } = useAuth();
     const [users, setUsers] = useState<AdminUser[]>([]);
+    const [extraUserDetails, setExtraUserDetails] = useState<{ name?: string; role?: string } | null>(null);
 
     // Auto-logout state
     const [showLogoutWarning, setShowLogoutWarning] = useState(false);
@@ -145,14 +146,37 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         return {
             id: authUser.id,
             username: authUser.email.split('@')[0],
-            name: authUser.name || authUser.email.split('@')[0], // Use name from auth or fallback
+            name: extraUserDetails?.name || authUser.name || authUser.email.split('@')[0], // Use name from DB/auth/fallback
             email: authUser.email,
-            role: authUser.role,
+            role: (extraUserDetails?.role as UserRole) || authUser.role,
             createdAt: new Date().toISOString(), // Mock, as AuthUser doesn't have this
             isActive: true,
             lastLogin: authUser.lastLogin || undefined
         };
-    }, [authUser]);
+    }, [authUser, extraUserDetails]);
+
+    // Fetch current user details to get real name if missing
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            if (!authUser?.id) return;
+            try {
+                const supabase = getAuthenticatedClient();
+                const { data } = await supabase
+                    .from('users')
+                    .select('name, role')
+                    .eq('id', authUser.id)
+                    .single();
+
+                if (data) {
+                    setExtraUserDetails({ name: data.name, role: data.role });
+                }
+            } catch (err) {
+                console.error("Failed to fetch user details", err);
+            }
+        };
+
+        fetchUserDetails();
+    }, [authUser?.id]);
 
     // Fetch users list for management (Admin only)
     useEffect(() => {
@@ -185,30 +209,58 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     // Reset activity timestamp
     const resetActivityTimer = useCallback(() => {
         lastActivityRef.current = Date.now();
-        setShowLogoutWarning(false);
-        setTimeUntilLogout(AUTO_LOGOUT_TIMEOUT);
-    }, []);
+        if (showLogoutWarning) {
+            setShowLogoutWarning(false);
+            setTimeUntilLogout(AUTO_LOGOUT_TIMEOUT);
+        }
+    }, [showLogoutWarning]);
 
     // Extend session (called when user clicks "Stay Logged In")
     const extendSession = useCallback(() => {
         resetActivityTimer();
     }, [resetActivityTimer]);
 
-    // Auto-logout effect
+    // Auto-logout polling effect
     useEffect(() => {
-        if (!currentUser) {
-            // Clear all timers when not authenticated
-            if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-            if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
-            if (countdownRef.current) clearInterval(countdownRef.current);
-            return;
-        }
+        if (!currentUser) return;
+
+        // Check activity every second
+        const intervalId = setInterval(() => {
+            const now = Date.now();
+            const timeSinceLastActivity = now - lastActivityRef.current;
+            const timeRemaining = AUTO_LOGOUT_TIMEOUT - timeSinceLastActivity;
+
+            // Update remaining time state for the modal
+            if (timeRemaining < WARNING_BEFORE_LOGOUT) {
+                setTimeUntilLogout(timeRemaining > 0 ? timeRemaining : 0);
+            }
+
+            // Check if we should show warning
+            if (timeRemaining <= WARNING_BEFORE_LOGOUT && timeRemaining > 0) {
+                if (!showLogoutWarning) {
+                    setShowLogoutWarning(true);
+                }
+            } else {
+                // If user became active again (timeRemaining went up), hide warning
+                if (showLogoutWarning) {
+                    setShowLogoutWarning(false);
+                }
+            }
+
+            // Check if time expired
+            if (timeRemaining <= 0) {
+                clearInterval(intervalId);
+                if (!sessionExpired) {
+                    setSessionExpired(true);
+                    authLogout();
+                }
+            }
+        }, 1000);
 
         // Activity event handler
         const handleActivity = () => {
-            if (!showLogoutWarning) {
-                resetActivityTimer();
-            }
+            // Only update ref, avoid state updates to prevent re-renders
+            lastActivityRef.current = Date.now();
         };
 
         // Track user activity
@@ -217,36 +269,14 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
             document.addEventListener(event, handleActivity, { passive: true });
         });
 
-        // Set up warning timer
-        warningTimerRef.current = setTimeout(() => {
-            setShowLogoutWarning(true);
-            setTimeUntilLogout(WARNING_BEFORE_LOGOUT);
-
-            // Start countdown
-            countdownRef.current = setInterval(() => {
-                setTimeUntilLogout(prev => {
-                    if (prev <= 1000) {
-                        // Time's up - logout
-                        clearInterval(countdownRef.current!);
-                        setSessionExpired(true);
-                        authLogout();
-                        return 0;
-                    }
-                    return prev - 1000;
-                });
-            }, 1000);
-        }, AUTO_LOGOUT_TIMEOUT - WARNING_BEFORE_LOGOUT);
-
         // Cleanup
         return () => {
+            clearInterval(intervalId);
             events.forEach(event => {
                 document.removeEventListener(event, handleActivity);
             });
-            if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-            if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
-            if (countdownRef.current) clearInterval(countdownRef.current);
         };
-    }, [currentUser, showLogoutWarning, resetActivityTimer, authLogout]);
+    }, [currentUser, showLogoutWarning, sessionExpired, authLogout]);
 
     const login = async (email: string, password: string): Promise<LoginResult> => {
         // Normalize email to avoid invisible mismatches

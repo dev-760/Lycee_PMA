@@ -140,12 +140,15 @@ export function validateImageFile(file: File): { isValid: boolean; error?: strin
 export function validateVideoFile(file: File): { isValid: boolean; error?: string } {
     const ALLOWED_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo'];
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Generic check for video types
+    if (!file.type.startsWith('video/')) {
         return {
             isValid: false,
-            error: 'Video type not allowed. Please use MP4, WebM, OGG, MOV, or AVI.'
+            error: 'File is not a valid video.'
         };
     }
+    // Optional: Warn if it's a type not universally supported, but allow it
+    // const UNIVERSAL_TYPES = ['video/mp4', 'video/webm', 'video/ogg'];
 
     if (file.size > MAX_VIDEO_SIZE) {
         return {

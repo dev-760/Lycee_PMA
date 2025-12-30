@@ -860,6 +860,30 @@ export const translations = {
             french: 'Français',
         },
     },
+    // Validation
+    validation: {
+        ar: {
+            passwordLength: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل',
+            passwordLowercase: 'يجب أن تحتوي على حرف صغير واحد على الأقل',
+            passwordUppercase: 'يجب أن تحتوي على حرف كبير واحد على الأقل',
+            passwordNumber: 'يجب أن تحتوي على رقم واحد على الأقل',
+            passwordSpecial: 'يجب أن تحتوي على رمز خاص واحد على الأقل',
+        },
+        en: {
+            passwordLength: 'Password must be at least 8 characters',
+            passwordLowercase: 'Must contain at least one lowercase letter',
+            passwordUppercase: 'Must contain at least one uppercase letter',
+            passwordNumber: 'Must contain at least one number',
+            passwordSpecial: 'Must contain at least one special character',
+        },
+        fr: {
+            passwordLength: 'Le mot de passe doit contenir au moins 8 caractères',
+            passwordLowercase: 'Doit contenir au moins une lettre minuscule',
+            passwordUppercase: 'Doit contenir au moins une lettre majuscule',
+            passwordNumber: 'Doit contenir au moins un chiffre',
+            passwordSpecial: 'Doit contenir au moins un caractère spécial',
+        },
+    },
 };
 
 // Helper function to get translation

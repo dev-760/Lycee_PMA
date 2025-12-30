@@ -1,25 +1,22 @@
-import { Calendar, User, ArrowLeft, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import type { Article } from "@/lib/api";
-import { useLanguage } from "@/i18n";
+// ... (imports remain)
+import { Calendar, User, ArrowLeft, Sparkles, Play, Layers } from "lucide-react"; // Added Play, Layers
 
-interface ArticleCardProps {
-  article: Article;
-  variant?: "default" | "featured" | "compact";
-}
+// ... (interface remains)
 
 const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
   const { getContentWithFallback, language, isRTL } = useLanguage();
-  
+
   // Get localized content
   const title = getContentWithFallback(article.title_translations, article.title);
   const excerpt = getContentWithFallback(article.excerpt_translations, article.excerpt);
-  
-  const readMoreText = {
-    ar: "اقرأ المزيد",
-    en: "Read More",
-    fr: "Lire la suite"
-  };
+
+  // Check for media
+  const hasVideo = article.videos && article.videos.length > 0;
+  const imageCount = article.images ? article.images.length : (article.image ? 1 : 0);
+  const hasMultipleImages = imageCount > 1;
+
+  // ... (localized text remains)
+
   if (variant === "featured") {
     return (
       <article className="bg-white rounded-2xl overflow-hidden shadow-card card-hover group border border-gray-100/80">
@@ -33,12 +30,28 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/50 to-transparent" />
 
             {/* Featured badge */}
-            <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} flex items-center gap-1 bg-gold text-charcoal px-3 py-1.5 rounded-full text-xs font-bold shadow-lg`}>
+            <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} flex items-center gap-1 bg-gold text-charcoal px-3 py-1.5 rounded-full text-xs font-bold shadow-lg z-10`}>
               <Sparkles className="w-3 h-3" />
               {language === 'ar' ? 'مقال مميز' : language === 'fr' ? 'Article vedette' : 'Featured'}
             </div>
 
+            {/* Media Indicators */}
+            <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'} flex flex-col gap-2 z-10`}>
+              {hasVideo && (
+                <div className="bg-red-600 text-white p-2 rounded-full shadow-lg" title="Video">
+                  <Play className="w-3 h-3 fill-white" />
+                </div>
+              )}
+              {hasMultipleImages && (
+                <div className="bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full shadow-lg flex items-center gap-1 text-xs">
+                  <Layers className="w-3 h-3" />
+                  <span>{imageCount}</span>
+                </div>
+              )}
+            </div>
+
             <div className="absolute bottom-0 right-0 left-0 p-6 text-white">
+              {/* ... rest of featured card ... */}
               <span className="bg-gradient-to-r from-teal to-teal-light text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 inline-block shadow-md">
                 {article.category}
               </span>
@@ -66,6 +79,7 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
   }
 
   if (variant === "compact") {
+    // ... compact variant ...
     return (
       <article className="bg-white rounded-xl overflow-hidden shadow-card card-hover flex gap-4 p-4 group border border-gray-100/80">
         <Link to={`/article/${article.id}`} className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden relative">
@@ -75,8 +89,16 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-charcoal/20 group-hover:bg-transparent transition-colors"></div>
+          {/* Media Indicators Mini */}
+          {(hasVideo || hasMultipleImages) && (
+            <div className="absolute bottom-1 right-1 flex gap-1">
+              {hasVideo && <div className="bg-red-600/90 p-1 rounded-full"><Play className="w-2 h-2 fill-white text-white" /></div>}
+              {hasMultipleImages && <div className="bg-black/60 px-1.5 rounded text-[10px] text-white flex items-center"><Layers className="w-2 h-2 mr-0.5" />{imageCount}</div>}
+            </div>
+          )}
         </Link>
         <div className="flex-1 min-w-0 flex flex-col justify-center">
+          {/* ... rest of compact ... */}
           <span className="text-teal text-xs font-bold tracking-wide">{article.category}</span>
           <Link to={`/article/${article.id}`}>
             <h3 className="font-bold text-charcoal mt-1 mb-2 line-clamp-2 leading-relaxed hover:text-teal transition-colors text-sm">
@@ -102,12 +124,29 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* Media Indicators */}
+          <div className={`absolute bottom-3 ${isRTL ? 'right-3' : 'left-3'} flex gap-2`}>
+            {hasVideo && (
+              <div className="bg-red-600 text-white p-1.5 rounded-full shadow-lg" title="Video">
+                <Play className="w-3 h-3 fill-white" />
+              </div>
+            )}
+            {hasMultipleImages && (
+              <div className="bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded-full shadow-lg flex items-center gap-1 text-xs font-medium">
+                <Layers className="w-3 h-3" />
+                <span>{imageCount}</span>
+              </div>
+            )}
+          </div>
+
           <span className="absolute top-4 right-4 bg-gradient-to-r from-teal to-teal-light text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md">
             {article.category}
           </span>
         </div>
       </Link>
       <div className="p-6">
+        {/* ... rest of default card ... */}
         <Link to={`/article/${article.id}`}>
           <h3 className="font-bold text-lg text-charcoal mb-3 line-clamp-2 leading-relaxed group-hover:text-teal transition-colors">
             {title}
@@ -137,5 +176,4 @@ const ArticleCard = ({ article, variant = "default" }: ArticleCardProps) => {
     </article>
   );
 };
-
 export default ArticleCard;
