@@ -47,5 +47,34 @@ enable_signup = true
 # Email authentication
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = false
+enable_confirmations = true
 
+# Email templates and redirect URLs
+[auth.email.template.confirmation]
+subject = "Confirm your email - Lycée PMA"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your password - Lycée PMA"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.magic_link]
+subject = "Your magic link - Lycée PMA"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.email_change]
+subject = "Confirm email change - Lycée PMA"
+content_path = "./supabase/templates/email_change.html"
+
+# SMTP configuration (for production, set via environment variables)
+# [auth.email.smtp]
+# host = "smtp.example.com"
+# port = 587
+# user = "your-smtp-user"
+# pass = "env(SMTP_PASSWORD)"
+# admin_email = "admin@lycee-pma.ma"
+# sender_name = "Lycée PMA"
+
+# Site URLs for redirects
+[auth.external]
+redirect_url = "https://lycee-pma.vercel.app/admin/verify-email"

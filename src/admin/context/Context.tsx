@@ -128,7 +128,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     // Integration with Global AuthContext
     const { user: authUser, login: authLogin, logout: authLogout } = useAuth();
     const [users, setUsers] = useState<AdminUser[]>([]);
-    const [extraUserDetails, setExtraUserDetails] = useState<{ name?: string; role?: string } | null>(null);
+    const [extraUserDetails, setExtraUserDetails] = useState<{ name?: string; role?: string; lastLogin?: string } | null>(null);
 
     // Auto-logout state
     const [showLogoutWarning, setShowLogoutWarning] = useState(false);
@@ -151,11 +151,11 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
             role: (extraUserDetails?.role as UserRole) || authUser.role,
             createdAt: new Date().toISOString(), // Mock, as AuthUser doesn't have this
             isActive: true,
-            lastLogin: authUser.lastLogin || undefined
+            lastLogin: extraUserDetails?.lastLogin || authUser.lastLogin || undefined
         };
     }, [authUser, extraUserDetails]);
 
-    // Fetch current user details to get real name if missing
+    // Fetch current user details to get real name and last login if missing
     useEffect(() => {
         const fetchUserDetails = async () => {
             if (!authUser?.id) return;
@@ -163,12 +163,16 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
                 const supabase = getAuthenticatedClient();
                 const { data } = await supabase
                     .from('users')
-                    .select('name, role')
+                    .select('name, role, last_login')
                     .eq('id', authUser.id)
                     .single();
 
                 if (data) {
-                    setExtraUserDetails({ name: data.name, role: data.role });
+                    setExtraUserDetails({
+                        name: data.name,
+                        role: data.role,
+                        lastLogin: data.last_login
+                    });
                 }
             } catch (err) {
                 console.error("Failed to fetch user details", err);
@@ -177,6 +181,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
         fetchUserDetails();
     }, [authUser?.id]);
+
 
     // Fetch users list for management (Admin only)
     useEffect(() => {

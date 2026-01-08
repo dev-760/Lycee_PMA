@@ -25,6 +25,9 @@ import AdminNews from "@/admin/pages/News";
 import AdminUsers from "@/admin/pages/Users";
 import AdminSettings from "@/admin/pages/Settings";
 import AdminAbsentTeachers from "@/admin/pages/AbsentTeachers";
+import ForgotPassword from "@/admin/pages/ForgotPassword";
+import ResetPassword from "@/admin/pages/ResetPassword";
+import VerifyEmail from "@/admin/pages/VerifyEmail";
 import Login from "@/pages/Login";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -54,8 +57,9 @@ const App = () => (
 
                     {/* Admin Routes */}
                     <Route path="/admin/login" element={<AdminLogin />} />
-
-
+                    <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/admin/reset-password" element={<ResetPassword />} />
+                    <Route path="/admin/verify-email" element={<VerifyEmail />} />
                     <Route element={<ProtectedRoute allowedRoles={['super_admin', 'editor', 'administrator']} />}>
                       <Route path="/admin/dashboard" element={<AdminDashboard />} />
                       <Route path="/admin/articles" element={<AdminArticles />} />

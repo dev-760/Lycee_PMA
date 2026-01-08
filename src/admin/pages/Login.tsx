@@ -216,6 +216,20 @@ const AdminLogin = () => {
                                 </span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-teal-light to-teal opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             </button>
+
+                            {/* Forgot Password Link */}
+                            <div className="text-center pt-2">
+                                <a
+                                    href="/admin/forgot-password"
+                                    className="text-sm text-slate hover:text-teal transition-colors"
+                                >
+                                    {language === 'ar'
+                                        ? 'نسيت كلمة المرور؟'
+                                        : language === 'fr'
+                                            ? 'Mot de passe oublié?'
+                                            : 'Forgot password?'}
+                                </a>
+                            </div>
                         </form>
                     </div>
 

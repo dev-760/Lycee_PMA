@@ -74,7 +74,6 @@ const Header = () => {
       {/* Skip Link for Accessibility */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 px-4 py-2 rounded-lg shadow-lg z-50"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 px-4 py-2 rounded-lg shadow-lg z-50 bg-navy text-ivory"
       >
         {t('nav', 'skipToContent')}

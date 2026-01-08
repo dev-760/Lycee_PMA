@@ -144,6 +144,29 @@ export const translations = {
             securityNotice: 'تأكد من استخدام بيانات الاعتماد المقدمة من مسؤول النظام',
             allRightsReserved: 'جميع الحقوق محفوظة',
             controlPanel: 'لوحة التحكم',
+            // Password Reset
+            forgotPassword: 'نسيت كلمة المرور',
+            forgotPasswordSubtitle: 'أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور',
+            sendResetLink: 'إرسال رابط إعادة التعيين',
+            resetLinkSent: 'تم إرسال رابط إعادة التعيين! تحقق من بريدك الإلكتروني.',
+            backToLogin: 'العودة لتسجيل الدخول',
+            // Reset Password
+            resetPassword: 'إعادة تعيين كلمة المرور',
+            newPassword: 'كلمة المرور الجديدة',
+            confirmPassword: 'تأكيد كلمة المرور',
+            updatePassword: 'تحديث كلمة المرور',
+            passwordUpdated: 'تم تحديث كلمة المرور بنجاح',
+            passwordMismatch: 'كلمات المرور غير متطابقة',
+            passwordTooShort: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+            invalidResetLink: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية',
+            // Email Verification
+            verifyEmail: 'تأكيد البريد الإلكتروني',
+            verifyingEmail: 'جاري التحقق من بريدك الإلكتروني...',
+            emailVerified: 'تم تأكيد بريدك الإلكتروني بنجاح!',
+            emailVerifiedSubtext: 'يمكنك الآن تسجيل الدخول إلى حسابك',
+            verificationFailed: 'فشل التحقق',
+            invalidVerificationLink: 'رابط التحقق غير صالح أو منتهي الصلاحية',
+            goToLogin: 'الانتقال لتسجيل الدخول',
         },
         en: {
             login: 'Login',
@@ -161,6 +184,29 @@ export const translations = {
             securityNotice: 'Use the credentials provided by the system administrator',
             allRightsReserved: 'All rights reserved',
             controlPanel: 'Control Panel',
+            // Password Reset
+            forgotPassword: 'Forgot Password',
+            forgotPasswordSubtitle: 'Enter your email and we\'ll send you a link to reset your password',
+            sendResetLink: 'Send Reset Link',
+            resetLinkSent: 'Reset link sent! Check your email.',
+            backToLogin: 'Back to Login',
+            // Reset Password
+            resetPassword: 'Reset Password',
+            newPassword: 'New Password',
+            confirmPassword: 'Confirm Password',
+            updatePassword: 'Update Password',
+            passwordUpdated: 'Password updated successfully',
+            passwordMismatch: 'Passwords do not match',
+            passwordTooShort: 'Password must be at least 8 characters',
+            invalidResetLink: 'Reset link is invalid or expired',
+            // Email Verification
+            verifyEmail: 'Email Verification',
+            verifyingEmail: 'Verifying your email...',
+            emailVerified: 'Your email has been verified successfully!',
+            emailVerifiedSubtext: 'You can now log in to your account',
+            verificationFailed: 'Verification Failed',
+            invalidVerificationLink: 'Verification link is invalid or expired',
+            goToLogin: 'Go to Login',
         },
         fr: {
             login: 'Connexion',
@@ -178,8 +224,32 @@ export const translations = {
             securityNotice: "Utilisez les identifiants fournis par l'administrateur système",
             allRightsReserved: 'Tous droits réservés',
             controlPanel: 'Panneau de contrôle',
+            // Password Reset
+            forgotPassword: 'Mot de passe oublié',
+            forgotPasswordSubtitle: 'Entrez votre e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe',
+            sendResetLink: 'Envoyer le lien de réinitialisation',
+            resetLinkSent: 'Lien de réinitialisation envoyé! Vérifiez votre e-mail.',
+            backToLogin: 'Retour à la connexion',
+            // Reset Password
+            resetPassword: 'Réinitialiser le mot de passe',
+            newPassword: 'Nouveau mot de passe',
+            confirmPassword: 'Confirmer le mot de passe',
+            updatePassword: 'Mettre à jour le mot de passe',
+            passwordUpdated: 'Mot de passe mis à jour avec succès',
+            passwordMismatch: 'Les mots de passe ne correspondent pas',
+            passwordTooShort: 'Le mot de passe doit contenir au moins 8 caractères',
+            invalidResetLink: 'Le lien de réinitialisation est invalide ou a expiré',
+            // Email Verification
+            verifyEmail: 'Vérification de l\'e-mail',
+            verifyingEmail: 'Vérification de votre e-mail...',
+            emailVerified: 'Votre e-mail a été vérifié avec succès!',
+            emailVerifiedSubtext: 'Vous pouvez maintenant vous connecter à votre compte',
+            verificationFailed: 'Échec de la vérification',
+            invalidVerificationLink: 'Le lien de vérification est invalide ou a expiré',
+            goToLogin: 'Aller à la connexion',
         },
     },
+
 
     // Admin Dashboard
     admin: {
