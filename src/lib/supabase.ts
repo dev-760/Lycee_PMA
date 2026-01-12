@@ -18,11 +18,14 @@ if (!supabaseUrl || !supabaseKey) {
  */
 export const getAuthenticatedClient = () => {
     const session = getSession();
-    const headers: Record<string, string> = {};
-
-    if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-    }
+    const headers: Record<string, string> = {
+        // Ensure apikey is always present
+        apikey: supabaseKey,
+        // Set Authorization header: use user token if available, otherwise use anon key
+        Authorization: session?.access_token
+            ? `Bearer ${session.access_token}`
+            : `Bearer ${supabaseKey}`
+    };
 
     return createClient(supabaseUrl, supabaseKey, {
         auth: {
