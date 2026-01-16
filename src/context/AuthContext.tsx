@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { AuthUser, UserRole } from "@/api/auth.types";
 import { secureLogin } from "@/api/secureLogin";
 import { getSession, saveSession, clearSession } from "@/lib/auth-storage";
+import { clearAuthenticatedClient } from "@/lib/supabase";
 
 interface AuthContextType {
     user: AuthUser | null;
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     function logout() {
         clearSession();
+        clearAuthenticatedClient(); // Clear cached Supabase client
         setUser(null);
     }
 

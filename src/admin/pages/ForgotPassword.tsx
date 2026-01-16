@@ -25,32 +25,16 @@ const ForgotPassword = () => {
         setIsLoading(true);
 
         try {
-            const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_REF;
-            const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+            // Use the shared anonymous client to prevent multiple GoTrueClient instances
+            const { getAnonymousClient } = await import('@/lib/supabase');
+            const supabase = getAnonymousClient();
 
-            if (!PROJECT_REF || !ANON_KEY) {
-                throw new Error('Configuration error');
-            }
+            const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: `${window.location.origin}/admin/reset-password`,
+            });
 
-            const response = await fetch(
-                `https://${PROJECT_REF}.functions.supabase.co/password_reset`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${ANON_KEY}`
-                    },
-                    body: JSON.stringify({
-                        email: email.trim().toLowerCase(),
-                        locale: language
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || 'Failed to send reset email');
+            if (error) {
+                throw error;
             }
 
             setSuccess(true);
