@@ -47,11 +47,12 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * Validate that user is authenticated
+ * Validate that user is authenticated with a valid token
  */
 function validateAuth(): boolean {
     const session = getSession();
-    return session?.success === true;
+    // Check both session success and presence of access_token
+    return session?.success === true && !!session?.access_token;
 }
 
 // ===========================================

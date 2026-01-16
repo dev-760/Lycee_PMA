@@ -1,5 +1,5 @@
 // Supabase Edge Function: translate-text
-// Uses @matheuss/google-translate-api for translation
+// Uses Google Translate API for automatic translation
 // ONLY called from admin dashboard on create/update operations
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -31,7 +31,6 @@ interface TranslationResult {
 
 /**
  * Translate text using Google Translate API (unofficial)
- * Uses @matheuss/google-translate-api compatible approach
  */
 async function translateText(
     text: string,
@@ -137,6 +136,29 @@ async function translateMultipleFields(
     return results;
 }
 
+/**
+ * Check if the authorization header contains a valid JWT token (not just the anon key)
+ */
+function isValidJwtToken(authHeader: string, anonKey: string): boolean {
+    if (!authHeader) return false;
+
+    // Extract the token from "Bearer <token>"
+    const token = authHeader.replace('Bearer ', '').trim();
+
+    // If the token is the same as the anon key, it's not a user token
+    if (token === anonKey) {
+        return false;
+    }
+
+    // Basic JWT structure check (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+        return false;
+    }
+
+    return true;
+}
+
 // Main Edge Function handler
 serve(async (req: Request) => {
     // Handle CORS preflight
@@ -145,30 +167,61 @@ serve(async (req: Request) => {
     }
 
     try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
         // Verify authentication
         const authHeader = req.headers.get('Authorization');
+
         if (!authHeader) {
+            console.error('[translate-text] Missing authorization header');
             return new Response(
                 JSON.stringify({ error: 'Missing authorization header' }),
                 { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
+        // Check if the token is a valid JWT (not just the anon key)
+        if (!isValidJwtToken(authHeader, supabaseAnonKey)) {
+            console.error('[translate-text] Invalid token - appears to be anon key or malformed JWT');
+            return new Response(
+                JSON.stringify({
+                    error: 'Invalid authentication token',
+                    details: 'User session may have expired. Please log in again.'
+                }),
+                { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
         // Verify the user is authenticated using Supabase
         const supabaseClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            supabaseUrl,
+            supabaseAnonKey,
             { global: { headers: { Authorization: authHeader } } }
         );
 
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
-        if (authError || !user) {
+        if (authError) {
+            console.error('[translate-text] Auth error:', authError.message);
             return new Response(
-                JSON.stringify({ error: 'Unauthorized' }),
+                JSON.stringify({
+                    error: 'Authentication failed',
+                    details: authError.message
+                }),
                 { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
+
+        if (!user) {
+            console.error('[translate-text] No user found for token');
+            return new Response(
+                JSON.stringify({ error: 'Unauthorized - no user found' }),
+                { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        console.log('[translate-text] Authenticated user:', user.id);
 
         // Parse request body
         const body = await req.json();
@@ -211,7 +264,7 @@ serve(async (req: Request) => {
         );
 
     } catch (error) {
-        console.error('Edge Function Error:', error);
+        console.error('[translate-text] Edge Function Error:', error);
         return new Response(
             JSON.stringify({
                 error: 'Translation service error',
