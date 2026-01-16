@@ -1,20 +1,20 @@
-// Supabase Edge Function: password-reset
+// Supabase Edge Function: password_reset
 // This function handles sending password reset emails with custom templates
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 // Email templates for each language
 const getEmailTemplate = (locale: string, resetLink: string) => {
-    const templates = {
-        ar: {
-            subject: 'إعادة تعيين كلمة المرور - ثانوية الأمير مولاي عبد الله',
-            html: `
+  const templates = {
+    ar: {
+      subject: 'إعادة تعيين كلمة المرور - ثانوية الأمير مولاي عبد الله',
+      html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
         <head>
@@ -51,10 +51,10 @@ const getEmailTemplate = (locale: string, resetLink: string) => {
         </body>
         </html>
       `
-        },
-        fr: {
-            subject: 'Réinitialisation du mot de passe - Lycée Prince Moulay Abdellah',
-            html: `
+    },
+    fr: {
+      subject: 'Réinitialisation du mot de passe - Lycée Prince Moulay Abdellah',
+      html: `
         <!DOCTYPE html>
         <html lang="fr">
         <head>
@@ -91,10 +91,10 @@ const getEmailTemplate = (locale: string, resetLink: string) => {
         </body>
         </html>
       `
-        },
-        en: {
-            subject: 'Password Reset - PMA High School',
-            html: `
+    },
+    en: {
+      subject: 'Password Reset - PMA High School',
+      html: `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -131,138 +131,132 @@ const getEmailTemplate = (locale: string, resetLink: string) => {
         </body>
         </html>
       `
-        }
-    };
+    }
+  };
 
-    return templates[locale as keyof typeof templates] || templates.en;
+  return templates[locale as keyof typeof templates] || templates.en;
 };
 
 serve(async (req) => {
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    // Get environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    // FIXED: Correct site URL (no hyphen)
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://lyceepma.vercel.app'
+
+    console.log('[password_reset] Starting password reset request')
+    console.log('[password_reset] Site URL:', siteUrl)
+
+    if (!supabaseUrl) {
+      console.error('[password_reset] Missing SUPABASE_URL')
+      throw new Error('Missing SUPABASE_URL environment variable')
     }
 
-    try {
-        // Get environment variables
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-        const siteUrl = Deno.env.get('SITE_URL') || 'https://lycee-pma.vercel.app'
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            throw new Error('Missing Supabase environment variables')
-        }
-
-        // Create Supabase admin client
-        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        })
-
-        // Parse request body
-        const { email, locale = 'ar' } = await req.json()
-
-        if (!email) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: 'Email is required'
-                }),
-                {
-                    status: 400,
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-                }
-            )
-        }
-
-        // Normalize email
-        const normalizedEmail = email.trim().toLowerCase()
-
-        // Check if user exists in our users table
-        const { data: userData, error: userError } = await supabaseAdmin
-            .from('users')
-            .select('id, email, name')
-            .eq('email', normalizedEmail)
-            .single()
-
-        // Always return success to prevent email enumeration
-        // Even if user doesn't exist, we don't reveal that
-        if (!userData || userError) {
-            console.log('User not found or error:', userError)
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    message: 'If an account exists with this email, a reset link has been sent.'
-                }),
-                {
-                    status: 200,
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-                }
-            )
-        }
-
-        // Generate password reset link
-        const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'recovery',
-            email: normalizedEmail,
-            options: {
-                redirectTo: `${siteUrl}/admin/reset-password`
-            }
-        })
-
-        if (resetError) {
-            console.error('Error generating reset link:', resetError)
-            throw new Error('Failed to generate reset link')
-        }
-
-        // Get the reset link from the generated data
-        const resetLink = resetData.properties?.action_link ||
-            `${siteUrl}/admin/reset-password?access_token=${resetData.properties?.hashed_token}`
-
-        // Get email template based on locale
-        const template = getEmailTemplate(locale, resetLink)
-
-        // Send email using Supabase's built-in email service or a custom provider
-        // For now, we'll use the Supabase auth.resetPasswordForEmail which sends the default email
-        // In production, you might want to use a service like Resend, SendGrid, etc.
-
-        // Using Supabase's built-in password reset
-        const { error: emailError } = await supabaseAdmin.auth.resetPasswordForEmail(
-            normalizedEmail,
-            {
-                redirectTo: `${siteUrl}/admin/reset-password`
-            }
-        )
-
-        if (emailError) {
-            console.error('Error sending reset email:', emailError)
-            throw new Error('Failed to send reset email')
-        }
-
-        return new Response(
-            JSON.stringify({
-                success: true,
-                message: 'Password reset email sent successfully'
-            }),
-            {
-                status: 200,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-        )
-
-    } catch (error) {
-        console.error('Password reset error:', error)
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: 'An unexpected error occurred. Please try again.'
-            }),
-            {
-                status: 500,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-            }
-        )
+    if (!supabaseServiceKey) {
+      console.error('[password_reset] Missing SUPABASE_SERVICE_ROLE_KEY')
+      throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
     }
+
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
+    // Parse request body
+    const { email, locale = 'ar' } = await req.json()
+    console.log('[password_reset] Request for email:', email?.substring(0, 3) + '***', 'locale:', locale)
+
+    if (!email) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Email is required'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Normalize email
+    const normalizedEmail = email.trim().toLowerCase()
+
+    // Check if user exists in our users table
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, email, name')
+      .eq('email', normalizedEmail)
+      .single()
+
+    // Always return success to prevent email enumeration
+    // Even if user doesn't exist, we don't reveal that
+    if (!userData || userError) {
+      console.log('[password_reset] User not found or error:', userError?.message)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'If an account exists with this email, a reset link has been sent.'
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    console.log('[password_reset] User found, generating reset link')
+
+    // Use Supabase's built-in password reset which handles email sending
+    // This sends Supabase's default email template (configured in Dashboard > Auth > Email Templates)
+    const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
+      normalizedEmail,
+      {
+        redirectTo: `${siteUrl}/admin/reset-password`
+      }
+    )
+
+    if (resetError) {
+      console.error('[password_reset] Error sending reset email:', resetError.message)
+      throw new Error(`Failed to send reset email: ${resetError.message}`)
+    }
+
+    console.log('[password_reset] Reset email sent successfully')
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Password reset email sent successfully'
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[password_reset] Error:', errorMessage)
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'An unexpected error occurred. Please try again.',
+        details: errorMessage
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
+  }
 })

@@ -22,24 +22,47 @@ const ResetPassword = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+    const [accessToken, setAccessToken] = useState<string | null>(null);
 
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // Get the access token from URL (Supabase sends it as a hash fragment or query param)
-    const accessToken = searchParams.get('access_token') ||
-        searchParams.get('token') ||
-        window.location.hash.match(/access_token=([^&]*)/)?.[1];
-
     useEffect(() => {
-        // Validate that we have a token
-        if (!accessToken) {
-            setTokenValid(false);
-        } else {
-            setTokenValid(true);
+        // Supabase sends tokens in the URL hash fragment like:
+        // #access_token=...&expires_at=...&expires_in=...&refresh_token=...&token_type=bearer&type=recovery
+
+        const hash = window.location.hash.substring(1); // Remove the '#'
+        const hashParams = new URLSearchParams(hash);
+
+        // Try to get access_token from hash first (Supabase's preferred method)
+        let token = hashParams.get('access_token');
+        const type = hashParams.get('type');
+
+        // If not in hash, try query params (fallback)
+        if (!token) {
+            token = searchParams.get('access_token') || searchParams.get('token');
         }
-    }, [accessToken]);
+
+        console.log('[ResetPassword] Token extraction:', {
+            hasHash: !!hash,
+            type,
+            hasToken: !!token
+        });
+
+        // Validate token and type
+        if (token && (type === 'recovery' || !type)) {
+            setAccessToken(token);
+            setTokenValid(true);
+
+            // Clean up the URL (remove hash) for cleaner display
+            if (window.location.hash) {
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+        } else {
+            setTokenValid(false);
+        }
+    }, [searchParams]);
 
     const getTitle = () => {
         switch (language) {
