@@ -78,3 +78,9 @@ content_path = "./supabase/templates/email_change.html"
 # Site URLs for redirects
 [auth.external]
 redirect_url = "https://lycee-pma.vercel.app/admin/verify-email"
+
+# Edge Functions configuration
+[functions.update_password]
+# Disable JWT verification at gateway level - function handles its own auth
+# This is required for password reset flow where recovery tokens differ from session JWTs
+verify_jwt = false
