@@ -39,7 +39,12 @@ file_size_limit = "50MiB"
 # Authentication configuration
 enabled = true
 site_url = "http://localhost:8080"
-additional_redirect_urls = ["https://localhost:8080"]
+additional_redirect_urls = [
+  "http://localhost:8080/admin/reset-password",
+  "http://localhost:8080/admin/verify-email",
+  "https://lycee-pma.vercel.app/admin/reset-password",
+  "https://lycee-pma.vercel.app/admin/verify-email"
+]
 jwt_expiry = 3600
 enable_signup = true
 
