@@ -30,7 +30,7 @@ const ForgotPassword = () => {
             const supabase = getAnonymousClient();
 
             const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-                redirectTo: `${window.location.origin}/admin/reset-password`,
+                redirectTo: 'https://lyceepma.vercel.app/admin/reset-password',
             });
 
             if (error) {
