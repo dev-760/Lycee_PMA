@@ -64,135 +64,68 @@ const ResetPassword = () => {
         }
     }, [searchParams]);
 
-    const getTitle = () => {
-        switch (language) {
-            case 'ar':
-                return 'إعادة تعيين كلمة المرور';
-            case 'fr':
-                return 'Réinitialiser le mot de passe';
-            default:
-                return 'Reset Password';
-        }
+    // Consolidated translations object for cleaner code
+    const translations = {
+        en: {
+            title: 'Reset Password',
+            subtitle: 'Enter your new password',
+            passwordLabel: 'New Password',
+            confirmPasswordLabel: 'Confirm Password',
+            passwordPlaceholder: 'Enter new password',
+            confirmPlaceholder: 'Confirm your password',
+            successMessage: 'Password changed successfully! Redirecting to login page...',
+            invalidTokenMessage: 'Reset link is invalid or expired. Please request a new link.',
+            passwordMismatchError: 'Passwords do not match',
+            passwordTooShortError: 'Password must be at least 8 characters',
+            updateButton: 'Update Password',
+            updatingButton: 'Updating...',
+            invalidLinkTitle: 'Invalid Link',
+            requestNewLink: 'Request New Link',
+            atLeast8Chars: 'At least 8 characters',
+            passwordsMatch: 'Passwords match',
+        },
+        ar: {
+            title: 'إعادة تعيين كلمة المرور',
+            subtitle: 'أدخل كلمة المرور الجديدة',
+            passwordLabel: 'كلمة المرور الجديدة',
+            confirmPasswordLabel: 'تأكيد كلمة المرور',
+            passwordPlaceholder: 'أدخل كلمة المرور الجديدة',
+            confirmPlaceholder: 'أعد إدخال كلمة المرور',
+            successMessage: 'تم تغيير كلمة المرور بنجاح! جاري تحويلك لصفحة تسجيل الدخول...',
+            invalidTokenMessage: 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.',
+            passwordMismatchError: 'كلمات المرور غير متطابقة',
+            passwordTooShortError: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+            updateButton: 'تحديث كلمة المرور',
+            updatingButton: 'جاري التحديث...',
+            invalidLinkTitle: 'رابط غير صالح',
+            requestNewLink: 'طلب رابط جديد',
+            atLeast8Chars: '8 أحرف على الأقل',
+            passwordsMatch: 'كلمات المرور متطابقة',
+        },
+        fr: {
+            title: 'Réinitialiser le mot de passe',
+            subtitle: 'Entrez votre nouveau mot de passe',
+            passwordLabel: 'Nouveau mot de passe',
+            confirmPasswordLabel: 'Confirmer le mot de passe',
+            passwordPlaceholder: 'Entrez le nouveau mot de passe',
+            confirmPlaceholder: 'Confirmez le mot de passe',
+            successMessage: 'Mot de passe modifié avec succès! Redirection vers la page de connexion...',
+            invalidTokenMessage: 'Le lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.',
+            passwordMismatchError: 'Les mots de passe ne correspondent pas',
+            passwordTooShortError: 'Le mot de passe doit contenir au moins 8 caractères',
+            updateButton: 'Mettre à jour le mot de passe',
+            updatingButton: 'Mise à jour...',
+            invalidLinkTitle: 'Lien invalide',
+            requestNewLink: 'Demander un nouveau lien',
+            atLeast8Chars: 'Au moins 8 caractères',
+            passwordsMatch: 'Les mots de passe correspondent',
+        },
     };
 
-    const getSubtitle = () => {
-        switch (language) {
-            case 'ar':
-                return 'أدخل كلمة المرور الجديدة';
-            case 'fr':
-                return 'Entrez votre nouveau mot de passe';
-            default:
-                return 'Enter your new password';
-        }
-    };
-
-    const getPasswordLabel = () => {
-        switch (language) {
-            case 'ar':
-                return 'كلمة المرور الجديدة';
-            case 'fr':
-                return 'Nouveau mot de passe';
-            default:
-                return 'New Password';
-        }
-    };
-
-    const getConfirmPasswordLabel = () => {
-        switch (language) {
-            case 'ar':
-                return 'تأكيد كلمة المرور';
-            case 'fr':
-                return 'Confirmer le mot de passe';
-            default:
-                return 'Confirm Password';
-        }
-    };
-
-    const getPasswordPlaceholder = () => {
-        switch (language) {
-            case 'ar':
-                return 'أدخل كلمة المرور الجديدة';
-            case 'fr':
-                return 'Entrez le nouveau mot de passe';
-            default:
-                return 'Enter new password';
-        }
-    };
-
-    const getConfirmPlaceholder = () => {
-        switch (language) {
-            case 'ar':
-                return 'أعد إدخال كلمة المرور';
-            case 'fr':
-                return 'Confirmez le mot de passe';
-            default:
-                return 'Confirm your password';
-        }
-    };
-
-    const getSuccessMessage = () => {
-        switch (language) {
-            case 'ar':
-                return 'تم تغيير كلمة المرور بنجاح! جاري تحويلك لصفحة تسجيل الدخول...';
-            case 'fr':
-                return 'Mot de passe modifié avec succès! Redirection vers la page de connexion...';
-            default:
-                return 'Password changed successfully! Redirecting to login page...';
-        }
-    };
-
-    const getInvalidTokenMessage = () => {
-        switch (language) {
-            case 'ar':
-                return 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.';
-            case 'fr':
-                return 'Le lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.';
-            default:
-                return 'Reset link is invalid or expired. Please request a new link.';
-        }
-    };
-
-    const getPasswordMismatchError = () => {
-        switch (language) {
-            case 'ar':
-                return 'كلمات المرور غير متطابقة';
-            case 'fr':
-                return 'Les mots de passe ne correspondent pas';
-            default:
-                return 'Passwords do not match';
-        }
-    };
-
-    const getPasswordTooShortError = () => {
-        switch (language) {
-            case 'ar':
-                return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
-            case 'fr':
-                return 'Le mot de passe doit contenir au moins 8 caractères';
-            default:
-                return 'Password must be at least 8 characters';
-        }
-    };
-
-    const getResetButton = () => {
-        if (isLoading) {
-            switch (language) {
-                case 'ar':
-                    return 'جاري التحديث...';
-                case 'fr':
-                    return 'Mise à jour...';
-                default:
-                    return 'Updating...';
-            }
-        }
-        switch (language) {
-            case 'ar':
-                return 'تحديث كلمة المرور';
-            case 'fr':
-                return 'Mettre à jour le mot de passe';
-            default:
-                return 'Update Password';
-        }
+    // Helper to get translation based on current language
+    const getText = (key: keyof typeof translations.en) => {
+        const lang = translations[language as keyof typeof translations] || translations.en;
+        return lang[key];
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
